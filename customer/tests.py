@@ -17,8 +17,8 @@ class CustomerModelFieldsTestCase(TestCase):
 
     def test_if_registered_at_get_filled_on_creation(self):
         customer = Customer.objects.create(
-            first_name="Test",
-            last_name="Test",
+            first_name="Tony",
+            last_name="Stark",
             phone_number="09123456789",
             email="test@test.com"
         )
@@ -27,10 +27,10 @@ class CustomerModelFieldsTestCase(TestCase):
 
     def test_if_str_function_of_model_works_properly(self):
         customer = Customer.objects.create(
-            first_name="FTest",
-            last_name="LTest",
+            first_name="Tony",
+            last_name="Stark",
             phone_number="09123456789",
             email="test@test.com"
         )
 
-        self.assertEqual(str(customer), "LTest, FTest")
+        self.assertEqual(str(customer), "Stark, Tony")
