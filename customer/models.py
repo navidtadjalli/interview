@@ -22,9 +22,18 @@ class Customer(models.Model):
         blank=False
     )
     email = models.EmailField(
-        verbose_name=_('E-main'),
+        verbose_name=_('E-mail'),
         null=False,
         blank=False
+    )
+    registered_at = models.DateTimeField(
+        verbose_name=_('Registered at'),
+        auto_now_add=True,
+        editable=False
+    )
+    last_login_at = models.DateTimeField(
+        verbose_name=_('Last Login at'),
+        editable=False
     )
 
     class Meta:
