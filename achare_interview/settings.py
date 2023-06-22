@@ -130,3 +130,4 @@ REDIS_VALIDATION_CODE_DB = os.environ.get(EnvVarKeys.RedisValidationCode, "1")
 GENERATE_FAKE_CODE = True \
     if str(os.environ.get(EnvVarKeys.GenerateFakeCode, "0")).lower() in ('1', 'yes', 'y', 'true') \
     else False
+GENERATED_CODE_TIME_TO_LIVE = int(os.environ.get(EnvVarKeys.GeneratedCodeTimeToLive, -1))
