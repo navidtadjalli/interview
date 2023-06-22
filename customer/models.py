@@ -33,7 +33,8 @@ class Customer(models.Model):
     )
     last_login_at = models.DateTimeField(
         verbose_name=_('Last Login at'),
-        editable=False
+        editable=False,
+        null=True
     )
 
     class Meta:
