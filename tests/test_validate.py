@@ -29,18 +29,26 @@ class ValidateTestCase(APITestCase):
         self.assertIn("code", response.data.keys())
 
     # skipping phone_number tests because it got tested in test_authenticate test cases it'll be skipped here
-    # skipping test case for code regex pattern because the same pattern used in phone_number
-    # skipping test cases for code length because the same parameters are used in phone_number tests
 
-    def test_if_validate_response_status_code_is_no_content(self):
+    def test_if_validate_validates_code_being_numeric(self):
         reset_redis(validation_code_redis)
+        self.assertEqual(self.client.post(self.url,
+                                          data={"phone_number": "09123456789",
+                                                "code": "test"
+                                                }).status_code, HTTPStatus.BAD_REQUEST)
 
-        phone_number: str = "09123456789"
-
-        self.client.post(self.authenticate_url, data={"phone_number": phone_number})
-        response = self.client.post(self.url, data={"phone_number": phone_number, "code": "456789"})
-
-        self.assertEqual(response.status_code, HTTPStatus.NO_CONTENT)
+    def test_if_validate_validates_phone_number_length(self):
+        reset_redis(validation_code_redis)
+        self.assertEqual(self.client.post(self.url,
+                                          data={"phone_number": "09123456789",
+                                                "code": "123"
+                                                }).status_code, HTTPStatus.BAD_REQUEST,
+                         msg="Validate does not check have minimum length validation for code field")
+        self.assertEqual(self.client.post(self.url,
+                                          data={"phone_number": "09123456789",
+                                                "code": "1234567"
+                                                }).status_code, HTTPStatus.BAD_REQUEST,
+                         msg="Validate does not check have maximum length validation for code field")
 
     def test_if_validate_checks_code(self):
         reset_redis(validation_code_redis)
@@ -52,3 +60,14 @@ class ValidateTestCase(APITestCase):
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         self.assertEqual(response.data, error_messages.VALIDATION_CODE_DOES_NOT_MATCH_ERROR_MESSAGE)
+
+    def test_if_validate_gets_a_token_for_registration(self):
+        reset_redis(validation_code_redis)
+
+        phone_number: str = "09123456789"
+
+        self.client.post(self.authenticate_url, data={"phone_number": phone_number})
+        response = self.client.post(self.url, data={"phone_number": phone_number, "code": "456789"})
+
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        # self.assertIn("registration_token", response.data)

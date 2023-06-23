@@ -4,6 +4,7 @@ from rest_framework import generics
 from rest_framework.response import Response
 
 from achare_interview.utils import exceptions, error_messages
+from achare_interview.utils.registration_token import get_registration_token
 from achare_interview.utils.validation_code import create_validation_code, validate_validation_code
 from customer import serializers
 
@@ -36,7 +37,9 @@ class ValidateAPIView(generics.GenericAPIView):
         except exceptions.ValidationCodeExpiredException:
             return Response(error_messages.VALIDATION_CODE_EXPIRED_ERROR_MESSAGE, status=HTTPStatus.BAD_REQUEST)
 
-        return Response({}, status=HTTPStatus.NO_CONTENT)
+        # registration_token: str = get_registration_token()
+
+        return Response({}, status=HTTPStatus.OK)
 
 
 class RegisterAPIView(generics.GenericAPIView):
