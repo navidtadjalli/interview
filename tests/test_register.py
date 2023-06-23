@@ -137,3 +137,5 @@ class RegisterTestCase(APITestCase):
         self.assertIsNone(registration_token_redis.get(
             RedisKeyGenerator.get_registration_token_key(registration_token)
         ))
+
+        # check if user object gets created
