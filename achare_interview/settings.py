@@ -46,6 +46,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
+    'achare_interview.utils.middlewares.AttemptMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -134,3 +135,8 @@ GENERATE_FAKE_CODE = True \
     else False
 GENERATED_CODE_TIME_TO_LIVE = int(os.environ.get(EnvVarKeys.GeneratedCodeTimeToLive, -1))
 MAXIMUM_CODE_REQUEST_COUNT = int(os.environ.get(EnvVarKeys.MaximumCodeRequestCount, 3))
+
+SENSITIVE_ENDPOINTS = [
+    "/register",
+    "/login"
+]
