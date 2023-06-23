@@ -157,6 +157,7 @@ class ValidationCodeTestCase(TestCase):
         with self.assertRaises(exceptions.MaximumIPAttemptException):
             self.validation_code_instance.get_validation_code(self.phone_numbers[3], self.ips[0])
 
+    # postponing remaining tests after middleware created
     # def test_if_phone_number_get_blocked_after_three_times(self):
     # def test_if_ip_get_blocked_after_three_times(self):
     # def test_if_request_blocked_ips_has_ttl(self):
