@@ -1,14 +1,16 @@
+from time import sleep
+
 from django.conf import settings
 from django.test import TestCase
 
-from achare_interview.utils.redis_client import validation_code_redis, reset_redis
+from achare_interview.utils.redis_client import validation_code_redis, reset_redis, RedisKeyGenerator
 from achare_interview.utils.validation_code import create_validation_code
 
 
 class ValidationCodeTestCase(TestCase):
     def setUp(self):
         self.phone_number = "09123056789"
-        self.code_key = f"{self.phone_number}_code"
+        self.code_key = RedisKeyGenerator.get_code_key(self.phone_number)
 
     def delete_redis_keys(self):
         reset_redis(validation_code_redis)
@@ -57,3 +59,11 @@ class ValidationCodeTestCase(TestCase):
         create_validation_code(self.phone_number)
 
         self.assertNotEqual(validation_code_redis.ttl(self.code_key), -1)
+
+    def test_if_added_key_for_code_get_expired(self):
+        self.delete_redis_keys()
+        settings.GENERATED_CODE_TIME_TO_LIVE = 3
+        create_validation_code(self.phone_number)
+        sleep(4)
+
+        self.assertIsNone(validation_code_redis.get(self.code_key))

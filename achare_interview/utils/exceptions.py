@@ -4,3 +4,11 @@ class MaximumPhoneNumberAttemptException(Exception):
 
 class MaximumIPAttemptException(Exception):
     pass
+
+
+class ValidationCodeExpiredException(Exception):
+    pass
+
+
+class ValidationCodeDoesNotMatchException(Exception):
+    pass

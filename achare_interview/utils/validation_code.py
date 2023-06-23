@@ -1,5 +1,4 @@
 import random
-from typing import Optional
 
 from django.conf import settings
 
@@ -20,10 +19,27 @@ def add_code_to_redis(phone_number: str, code: str):
                               ex=settings.GENERATED_CODE_TIME_TO_LIVE)
 
 
+def get_code_from_redis(phone_number: str) -> str:
+    redis_value: bytes = validation_code_redis.get(RedisKeyGenerator.get_code_key(phone_number))
+    if not redis_value:
+        raise exceptions.ValidationCodeExpiredException()
+
+    return redis_value.decode(encoding="utf-8")
+
+
+def delete_code_from_redis(phone_number: str):
+    validation_code_redis.delete(RedisKeyGenerator.get_code_key(phone_number))
+
+
 def create_validation_code(phone_number: str):
     generated_code: str = generate_validation_code(phone_number)
     add_code_to_redis(phone_number, generated_code)
 
 
 def validate_validation_code(phone_number: str, code: str):
-    pass
+    redis_code: str = get_code_from_redis(phone_number)
+
+    if code != redis_code:
+        raise exceptions.ValidationCodeDoesNotMatchException()
+
+    delete_code_from_redis(phone_number)

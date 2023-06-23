@@ -13,7 +13,11 @@ class AuthenticateTestCase(APITestCase):
         self.url = reverse('authenticate')
 
     def test_if_authenticate_endpoint_exists(self):
-        self.assertNotEqual(self.client.post(self.url).status_code, HTTPStatus.NOT_FOUND)
+        self.assertNotEqual(self.client.get(self.url).status_code, HTTPStatus.NOT_FOUND)
+
+    def test_if_validate_endpoint_method_type_is_post(self):
+        self.assertEqual(self.client.get(self.url).status_code, HTTPStatus.METHOD_NOT_ALLOWED)
+        self.assertNotEqual(self.client.post(self.url).status_code, HTTPStatus.METHOD_NOT_ALLOWED)
 
     def test_if_authenticate_checks_phone_number_is_sent_in_body(self):
         self.assertEqual(self.client.post(self.url).status_code, HTTPStatus.BAD_REQUEST)

@@ -21,4 +21,23 @@ class AuthenticateSerializer(serializers.Serializer):
     )
 
 
-# class ValidateSerializer(serializers.Serializer)
+class ValidateSerializer(serializers.Serializer):
+    phone_number = serializers.RegexField(
+        allow_blank=False,
+        allow_null=False,
+        required=True,
+        write_only=True,
+        regex=r'^09\d+$',
+        min_length=11,
+        max_length=11,
+        validators=[validators.UniqueValidator(Customer.objects.all())]
+    )
+    code = serializers.RegexField(
+        allow_blank=False,
+        allow_null=False,
+        required=True,
+        write_only=True,
+        regex=r'^\d+$',
+        min_length=6,
+        max_length=6
+    )
