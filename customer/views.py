@@ -26,10 +26,11 @@ class ValidateAPIView(generics.GenericAPIView):
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        phone_number: str = serializer.validated_data.pop("phone_number")
 
         try:
             validate_validation_code(
-                phone_number=serializer.validated_data.pop("phone_number"),
+                phone_number=phone_number,
                 code=serializer.validated_data.pop("code")
             )
         except exceptions.ValidationCodeDoesNotMatchException:
@@ -37,9 +38,9 @@ class ValidateAPIView(generics.GenericAPIView):
         except exceptions.ValidationCodeExpiredException:
             return Response(error_messages.VALIDATION_CODE_EXPIRED_ERROR_MESSAGE, status=HTTPStatus.BAD_REQUEST)
 
-        # registration_token: str = get_registration_token()
+        registration_token: str = get_registration_token(phone_number)
 
-        return Response({}, status=HTTPStatus.OK)
+        return Response({"registration_token": registration_token}, status=HTTPStatus.OK)
 
 
 class RegisterAPIView(generics.GenericAPIView):

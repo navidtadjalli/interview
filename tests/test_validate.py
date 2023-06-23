@@ -70,4 +70,4 @@ class ValidateTestCase(APITestCase):
         response = self.client.post(self.url, data={"phone_number": phone_number, "code": "456789"})
 
         self.assertEqual(response.status_code, HTTPStatus.OK)
-        # self.assertIn("registration_token", response.data)
+        self.assertIn("registration_token", response.data)
