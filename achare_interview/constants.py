@@ -4,3 +4,4 @@ class EnvVarKeys:
     RedisValidationCode = "REDIS_VALIDATION_CODE"
     GenerateFakeCode = "GENERATE_FAKE_CODE"
     GeneratedCodeTimeToLive = "GENERATED_CODE_TIME_TO_LIVE"
+    MaximumCodeRequestCount = "MAXIMUM_CODE_REQUEST_COUNT"

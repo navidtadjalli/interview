@@ -131,3 +131,4 @@ GENERATE_FAKE_CODE = True \
     if str(os.environ.get(EnvVarKeys.GenerateFakeCode, "0")).lower() in ('1', 'yes', 'y', 'true') \
     else False
 GENERATED_CODE_TIME_TO_LIVE = int(os.environ.get(EnvVarKeys.GeneratedCodeTimeToLive, -1))
+MAXIMUM_CODE_REQUEST_COUNT = int(os.environ.get(EnvVarKeys.MaximumCodeRequestCount, 3))
