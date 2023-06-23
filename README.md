@@ -1,9 +1,10 @@
 TODO:
 
- - complete tests of `register`
- - add `login`
- - add another step for password
- - complete `AttemptMiddleware` for IP checking
- - create `Dockerfile`
- - complete `Makefile`
+ - Complete tests of `register`
+ - Add `login`
+ - Add another step for password
+ - Complete `AttemptMiddleware` for IP checking
+ - Create `Dockerfile`
+ - Complete `Makefile`
  - Complete `README.md`
+ - Add Postman Collection
