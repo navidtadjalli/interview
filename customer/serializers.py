@@ -19,3 +19,6 @@ class AuthenticateSerializer(serializers.Serializer):
         read_only=True,
         default=settings.GENERATED_CODE_TIME_TO_LIVE
     )
+
+
+# class ValidateSerializer(serializers.Serializer)

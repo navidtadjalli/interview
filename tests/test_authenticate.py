@@ -12,30 +12,30 @@ class AuthenticateTestCase(APITestCase):
     def setUp(self):
         self.url = reverse('authenticate')
 
-    def test_if_register_endpoint_exists(self):
+    def test_if_authenticate_endpoint_exists(self):
         self.assertNotEqual(self.client.post(self.url).status_code, HTTPStatus.NOT_FOUND)
 
-    def test_if_register_checks_phone_number_is_sent_in_body(self):
+    def test_if_authenticate_checks_phone_number_is_sent_in_body(self):
         self.assertEqual(self.client.post(self.url).status_code, HTTPStatus.BAD_REQUEST)
 
-    def test_if_register_validates_phone_number_being_numeric(self):
+    def test_if_authenticate_validates_phone_number_being_numeric(self):
         self.assertEqual(self.client.post(self.url,
                                           data={"phone_number": "test"}).status_code, HTTPStatus.BAD_REQUEST)
 
-    def test_if_register_validates_phone_number_length(self):
+    def test_if_authenticate_validates_phone_number_length(self):
         self.assertEqual(self.client.post(self.url,
                                           data={"phone_number": "09"}).status_code, HTTPStatus.BAD_REQUEST,
-                         msg="Register does not check have minimum length validation for phone_number field")
+                         msg="Authenticate does not check have minimum length validation for phone_number field")
         self.assertEqual(self.client.post(self.url,
                                           data={"phone_number": "09090909090909"}).status_code, HTTPStatus.BAD_REQUEST,
-                         msg="Register does not check have maximum length validation for phone_number field")
+                         msg="Authenticate does not check have maximum length validation for phone_number field")
 
-    def test_if_register_response_contains_duration(self):
+    def test_if_authenticate_response_contains_duration(self):
         response = self.client.post(self.url, data={"phone_number": "09123456789"})
         self.assertIn("duration", response.data)
         self.assertEqual(response.data["duration"], settings.GENERATED_CODE_TIME_TO_LIVE)
 
-    def test_if_register_create_validation_code_for_user(self):
+    def test_if_authenticate_create_validation_code_for_user(self):
         reset_redis(validation_code_redis)
 
         phone_number: str = "09123456789"
@@ -51,7 +51,7 @@ class AuthenticateTestCase(APITestCase):
         redis_value_str: str = redis_value.decode(encoding='utf-8')
         self.assertEqual(redis_value_str, phone_number[-6:])
 
-    def test_if_register_checks_phone_number_existence(self):
+    def test_if_authenticate_checks_phone_number_existence(self):
         reset_redis(validation_code_redis)
 
         phone_number: str = "09123456789"

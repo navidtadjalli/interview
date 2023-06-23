@@ -1,15 +1,16 @@
 from http import HTTPStatus
 
 from rest_framework import generics
+from rest_framework.response import Response
 
 from achare_interview.utils.validation_code import create_validation_code
 from customer.serializers import AuthenticateSerializer
 
 
-class AuthenticateAPIView(generics.CreateAPIView):
+class AuthenticateAPIView(generics.GenericAPIView):
     serializer_class = AuthenticateSerializer
 
-    def perform_create(self, serializer):
+    def send_code(self, serializer):
         x_forwarded_for = self.request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
             ip = x_forwarded_for.split(',')[0]
@@ -21,8 +22,12 @@ class AuthenticateAPIView(generics.CreateAPIView):
             ip=ip
         )
 
-    def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
-        response.status_code = HTTPStatus.OK
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.send_code(serializer)
+        return Response(serializer.data, status=HTTPStatus.OK)
 
-        return response
+
+class ValidateAPIView(generics.GenericAPIView):
+    pass
