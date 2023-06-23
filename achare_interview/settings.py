@@ -122,6 +122,8 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+AUTH_USER_MODEL = "customer.Customer"
+
 # Redis data configurations
 REDIS_HOST = os.environ.get(EnvVarKeys.RedisHost, "localhost")
 REDIS_PORT = os.environ.get(EnvVarKeys.RedisPort, "6379")

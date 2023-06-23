@@ -23,7 +23,7 @@ class CustomerModelFieldsTestCase(TestCase):
             email="test@test.com"
         )
 
-        self.assertIsNotNone(customer.registered_at)
+        self.assertIsNotNone(customer.date_joined)
 
     def test_if_str_function_of_model_works_properly(self):
         customer = Customer.objects.create(
