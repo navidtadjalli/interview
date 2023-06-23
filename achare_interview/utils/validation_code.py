@@ -25,5 +25,5 @@ def create_validation_code(phone_number: str):
     add_code_to_redis(phone_number, generated_code)
 
 
-def validate_validation_code(phone_number: str, ip: str):
+def validate_validation_code(phone_number: str, code: str):
     pass

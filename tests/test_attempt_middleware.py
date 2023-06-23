@@ -1,3 +1,10 @@
+# def setUp(self):
+#     self.phone_numbers = [f"0912305678{i}" for i in range(1, 5)]
+#     self.ips = [f"192.168.1.{i}" for i in range(1, 5)]
+#
+#     self.code_keys = [f"{pn}_code" for pn in self.phone_numbers]
+#     self.phone_number_attempts_keys = [f"{pn}_attempts" for pn in self.phone_numbers]
+#     self.ip_attempts_keys = [f"{ip}_attempts" for ip in self.ips]
 # def test_if_request_attempts_for_phone_number_saves_into_redis(self):
 #     self.delete_redis_keys()
 #     fake_code = True
