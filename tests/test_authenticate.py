@@ -8,9 +8,9 @@ from achare_interview.utils.redis_client import validation_code_redis, reset_red
 from customer.models import Customer
 
 
-class RegisterTestCase(APITestCase):
+class AuthenticateTestCase(APITestCase):
     def setUp(self):
-        self.url = reverse('register')
+        self.url = reverse('authenticate')
 
     def test_if_register_endpoint_exists(self):
         self.assertNotEqual(self.client.post(self.url).status_code, HTTPStatus.NOT_FOUND)
