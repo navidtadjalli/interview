@@ -4,7 +4,7 @@ from rest_framework import generics
 from rest_framework.response import Response
 
 from achare_interview.utils import exceptions, error_messages
-from achare_interview.utils.registration_token import get_registration_token
+from achare_interview.utils.registration_token import get_registration_token, validate_registration_token
 from achare_interview.utils.validation_code import create_validation_code, validate_validation_code
 from customer import serializers
 
@@ -49,5 +49,14 @@ class RegisterAPIView(generics.GenericAPIView):
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        phone_number: str = serializer.validated_data.pop("phone_number")
 
-        return Response({}, status=HTTPStatus.BAD_REQUEST)
+        try:
+            validate_registration_token(
+                phone_number=phone_number,
+                token=serializer.validated_data.pop("registration_token")
+            )
+        except exceptions.RegistrationTokenIsNotValidException:
+            return Response(error_messages.REGISTRATION_TOKEN_IS_NOT_VALID_ERROR_MESSAGE, status=HTTPStatus.BAD_REQUEST)
+
+        return Response({}, status=HTTPStatus.OK)

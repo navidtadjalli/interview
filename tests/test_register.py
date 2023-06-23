@@ -1,9 +1,12 @@
 from http import HTTPStatus
+from uuid import uuid4
 
 from django.urls import reverse
 from rest_framework.test import APITestCase
 
-from achare_interview.utils.redis_client import validation_code_redis, reset_redis
+from achare_interview.utils import error_messages
+from achare_interview.utils.redis_client import validation_code_redis, reset_redis, registration_token_redis, \
+    RedisKeyGenerator
 
 
 class RegisterTestCase(APITestCase):
@@ -12,25 +15,125 @@ class RegisterTestCase(APITestCase):
         self.validate_url = reverse('validate')
         self.register_url = reverse('register')
 
-    def test_if_register_endpoint_exists(self):
+        self.phone_number = "09123456789"
+        self.code = self.phone_number[-6:]
+        self.first_name = "first_name"
+        self.last_name = "last_name"
+        self.sample_token = uuid4().hex
+
+    def delete_redis(self):
         reset_redis(validation_code_redis)
+        reset_redis(registration_token_redis)
+
+    def test_if_register_endpoint_exists(self):
+        self.delete_redis()
         self.assertNotEqual(self.client.get(self.register_url).status_code, HTTPStatus.NOT_FOUND)
 
     def test_if_register_endpoint_method_type_is_post(self):
-        reset_redis(validation_code_redis)
+        self.delete_redis()
+
         self.assertEqual(self.client.get(self.register_url).status_code, HTTPStatus.METHOD_NOT_ALLOWED)
         self.assertNotEqual(self.client.post(self.register_url).status_code, HTTPStatus.METHOD_NOT_ALLOWED)
 
     def test_if_register_checks_required_fields_are_sent_in_body(self):
-        reset_redis(validation_code_redis)
+        self.delete_redis()
         response = self.client.post(self.register_url)
+
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
         self.assertIn("phone_number", response.data.keys())
         self.assertIn("first_name", response.data.keys())
         self.assertIn("last_name", response.data.keys())
+        self.assertIn("registration_token", response.data.keys())
 
     # skipping phone_number tests because it got tested in test_authenticate test cases it'll be skipped here
-    # skipping test_cases for first_name and last_name length because the same parameters are used in phone_number tests
 
-    # def test_if_without_code_user_can_register
-    # def test_for session
+    def test_if_register_has_blank_for_first_name_and_last_name(self):
+        self.delete_redis()
+        response = self.client.post(self.register_url, data={
+            "phone_number": self.phone_number,
+            "first_name": '',
+            "last_name": '',
+            "registration_token": self.sample_token
+        })
+
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertIn("first_name", response.data)
+        self.assertIn("last_name", response.data)
+
+    def test_if_register_has_minimum_length_for_first_name_and_last_name(self):
+        self.delete_redis()
+        response = self.client.post(self.register_url, data={
+            "phone_number": self.phone_number,
+            "first_name": 'a',
+            "last_name": 'a',
+            "registration_token": self.sample_token
+        })
+
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertIn("first_name", response.data)
+        self.assertIn("last_name", response.data)
+
+    def test_if_register_has_maximum_length_for_first_name_and_last_name(self):
+        self.delete_redis()
+        response = self.client.post(self.register_url, data={
+            "phone_number": self.phone_number,
+            "first_name": "a" * 151,
+            "last_name": "a" * 151,
+            "registration_token": self.sample_token
+        })
+
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertIn("first_name", response.data)
+        self.assertIn("last_name", response.data)
+
+    def test_if_register_validates_length_of_registration_token(self):
+        self.delete_redis()
+        response = self.client.post(self.register_url, data={
+            "phone_number": self.phone_number,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "registration_token": "1" * 31
+        })
+
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertIn("registration_token", response.data)
+
+        response = self.client.post(self.register_url, data={
+            "phone_number": self.phone_number,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "registration_token": "1" * 33
+        })
+
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertIn("registration_token", response.data)
+
+    def test_if_register_checks_registration_token(self):
+        response = self.client.post(self.register_url, data={
+            "phone_number": self.phone_number,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "registration_token": self.sample_token
+        })
+
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertEqual(response.data, error_messages.REGISTRATION_TOKEN_IS_NOT_VALID_ERROR_MESSAGE)
+
+    def test_if_register_works(self):
+        self.delete_redis()
+
+        self.client.post(self.authenticate_url, data={"phone_number": self.phone_number})
+        validate_response = self.client.post(self.validate_url, data={"phone_number": self.phone_number,
+                                                                      "code": self.code})
+        registration_token: str = validate_response.data["registration_token"]
+        response = self.client.post(self.register_url, data={
+            "phone_number": self.phone_number,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "registration_token": registration_token
+        })
+
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertIsNone(registration_token_redis.get(
+            RedisKeyGenerator.get_registration_token_key(registration_token)
+        ))

@@ -64,11 +64,23 @@ class RegisterSerializer(serializers.Serializer):
         allow_blank=False,
         allow_null=False,
         required=True,
-        write_only=True
+        write_only=True,
+        min_length=3,
+        max_length=150
     )
     last_name = serializers.CharField(
         allow_blank=False,
         allow_null=False,
         required=True,
-        write_only=True
+        write_only=True,
+        min_length=3,
+        max_length=150
+    )
+    registration_token = serializers.CharField(
+        allow_blank=False,
+        allow_null=False,
+        required=True,
+        write_only=True,
+        min_length=32,
+        max_length=32
     )

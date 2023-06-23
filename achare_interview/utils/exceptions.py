@@ -12,3 +12,7 @@ class ValidationCodeExpiredException(Exception):
 
 class ValidationCodeDoesNotMatchException(Exception):
     pass
+
+
+class RegistrationTokenIsNotValidException(Exception):
+    pass
