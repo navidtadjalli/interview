@@ -62,8 +62,8 @@ class ValidationCodeTestCase(TestCase):
 
     def test_if_added_key_for_code_get_expired(self):
         self.delete_redis_keys()
-        settings.GENERATED_CODE_TIME_TO_LIVE = 3
+        settings.GENERATED_CODE_TIME_TO_LIVE = 1
         create_validation_code(self.phone_number)
-        sleep(4)
+        sleep(2)
 
         self.assertIsNone(validation_code_redis.get(self.code_key))

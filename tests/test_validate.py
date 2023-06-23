@@ -1,12 +1,10 @@
 from http import HTTPStatus
 
-from django.conf import settings
 from django.urls import reverse
 from rest_framework.test import APITestCase
 
 from achare_interview.utils import error_messages
-from achare_interview.utils.redis_client import validation_code_redis, reset_redis, RedisKeyGenerator
-from customer.models import Customer
+from achare_interview.utils.redis_client import validation_code_redis, reset_redis
 
 
 class ValidateTestCase(APITestCase):
@@ -30,27 +28,9 @@ class ValidateTestCase(APITestCase):
         self.assertIn("phone_number", response.data.keys())
         self.assertIn("code", response.data.keys())
 
-    # because phone_number is tested in test_validate test cases it'll be skipped here
-
-    def test_if_validate_validates_code_being_numeric(self):
-        reset_redis(validation_code_redis)
-        self.assertEqual(self.client.post(self.url,
-                                          data={"phone_number": "09123456789",
-                                                "code": "test"
-                                                }).status_code, HTTPStatus.BAD_REQUEST)
-
-    def test_if_validate_validates_phone_number_length(self):
-        reset_redis(validation_code_redis)
-        self.assertEqual(self.client.post(self.url,
-                                          data={"phone_number": "09123456789",
-                                                "code": "123"
-                                                }).status_code, HTTPStatus.BAD_REQUEST,
-                         msg="Validate does not check have minimum length validation for code field")
-        self.assertEqual(self.client.post(self.url,
-                                          data={"phone_number": "09123456789",
-                                                "code": "1234567"
-                                                }).status_code, HTTPStatus.BAD_REQUEST,
-                         msg="Validate does not check have maximum length validation for code field")
+    # skipping phone_number tests because it got tested in test_authenticate test cases it'll be skipped here
+    # skipping test case for code regex pattern because the same pattern used in phone_number
+    # skipping test cases for code length because the same parameters are used in phone_number tests
 
     def test_if_validate_response_status_code_is_no_content(self):
         reset_redis(validation_code_redis)

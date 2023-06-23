@@ -41,3 +41,34 @@ class ValidateSerializer(serializers.Serializer):
         min_length=6,
         max_length=6
     )
+
+
+class RegisterSerializer(serializers.Serializer):
+    phone_number = serializers.RegexField(
+        allow_blank=False,
+        allow_null=False,
+        required=True,
+        write_only=True,
+        regex=r'^09\d+$',
+        min_length=11,
+        max_length=11,
+        validators=[validators.UniqueValidator(Customer.objects.all())]
+    )
+    email = serializers.EmailField(
+        allow_blank=True,
+        allow_null=True,
+        required=False,
+        write_only=True
+    )
+    first_name = serializers.CharField(
+        allow_blank=False,
+        allow_null=False,
+        required=True,
+        write_only=True
+    )
+    last_name = serializers.CharField(
+        allow_blank=False,
+        allow_null=False,
+        required=True,
+        write_only=True
+    )

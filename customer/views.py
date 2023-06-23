@@ -37,3 +37,13 @@ class ValidateAPIView(generics.GenericAPIView):
             return Response(error_messages.VALIDATION_CODE_EXPIRED_ERROR_MESSAGE, status=HTTPStatus.BAD_REQUEST)
 
         return Response({}, status=HTTPStatus.NO_CONTENT)
+
+
+class RegisterAPIView(generics.GenericAPIView):
+    serializer_class = serializers.RegisterSerializer
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        return Response({}, status=HTTPStatus.BAD_REQUEST)
