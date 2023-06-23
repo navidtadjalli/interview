@@ -1,7 +1,10 @@
+from http import HTTPStatus
+
 from django.conf import settings
 from rest_framework import generics, serializers, validators
 
 from achare_interview.utils.validation_code import create_validation_code
+from customer.models import Customer
 
 
 class RegisterSerializer(serializers.Serializer):
@@ -12,7 +15,8 @@ class RegisterSerializer(serializers.Serializer):
         write_only=True,
         regex=r'^09\d+$',
         min_length=11,
-        max_length=11
+        max_length=11,
+        validators=[validators.UniqueValidator(Customer.objects.all())]
     )
     duration = serializers.IntegerField(
         read_only=True,
@@ -34,3 +38,9 @@ class RegisterAPIView(generics.CreateAPIView):
             phone_number=serializer.validated_data.pop("phone_number"),
             ip=ip
         )
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        response.status_code = HTTPStatus.OK
+
+        return response

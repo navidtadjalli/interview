@@ -5,6 +5,7 @@ from django.urls import reverse
 from rest_framework.test import APITestCase
 
 from achare_interview.utils.redis_client import validation_code_redis, reset_redis, RedisKeyGenerator
+from customer.models import Customer
 
 
 class RegisterTestCase(APITestCase):
@@ -40,10 +41,26 @@ class RegisterTestCase(APITestCase):
         phone_number: str = "09123456789"
         redis_key: str = RedisKeyGenerator.get_code_key(phone_number)
 
-        self.client.post(self.url, data={"phone_number": phone_number})
+        response = self.client.post(self.url, data={"phone_number": phone_number})
+
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
         redis_value: bytes = validation_code_redis.get(redis_key)
         self.assertIsNotNone(redis_value)
 
         redis_value_str: str = redis_value.decode(encoding='utf-8')
         self.assertEqual(redis_value_str, phone_number[-6:])
+
+    def test_if_register_checks_phone_number_existence(self):
+        reset_redis(validation_code_redis)
+
+        phone_number: str = "09123456789"
+
+        customer: Customer = Customer()
+        customer.phone_number = phone_number
+        customer.set_password('test')
+        customer.save()
+
+        response = self.client.post(self.url, data={"phone_number": phone_number})
+
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
