@@ -56,7 +56,8 @@ class RegisterTestCase(APITestCase):
             "phone_number": self.phone_number,
             "first_name": '',
             "last_name": '',
-            "registration_token": self.sample_token
+            "registration_token": self.sample_token,
+            "password": self.password
         })
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -69,7 +70,8 @@ class RegisterTestCase(APITestCase):
             "phone_number": self.phone_number,
             "first_name": 'a',
             "last_name": 'a',
-            "registration_token": self.sample_token
+            "registration_token": self.sample_token,
+            "password": self.password
         })
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -82,7 +84,8 @@ class RegisterTestCase(APITestCase):
             "phone_number": self.phone_number,
             "first_name": "a" * 151,
             "last_name": "a" * 151,
-            "registration_token": self.sample_token
+            "registration_token": self.sample_token,
+            "password": self.password
         })
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -95,7 +98,8 @@ class RegisterTestCase(APITestCase):
             "phone_number": self.phone_number,
             "first_name": self.first_name,
             "last_name": self.last_name,
-            "registration_token": "1" * 31
+            "registration_token": "1" * 31,
+            "password": self.password
         })
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -105,7 +109,8 @@ class RegisterTestCase(APITestCase):
             "phone_number": self.phone_number,
             "first_name": self.first_name,
             "last_name": self.last_name,
-            "registration_token": "1" * 33
+            "registration_token": "1" * 33,
+            "password": self.password
         })
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
