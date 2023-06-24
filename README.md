@@ -1,8 +1,6 @@
 TODO:
 
  - Complete `AttemptMiddleware` for IP checking
- - Complete `README.md`
- - Add Postman Collection
 
 # Achare Interview Project
 
