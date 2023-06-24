@@ -7,6 +7,7 @@ from rest_framework.test import APITestCase
 from achare_interview.utils import error_messages
 from achare_interview.utils.redis_client import validation_code_redis, reset_redis, registration_token_redis, \
     RedisKeyGenerator
+from customer.models import Customer
 
 
 class RegisterTestCase(APITestCase):
@@ -133,9 +134,12 @@ class RegisterTestCase(APITestCase):
             "registration_token": registration_token
         })
 
+        self.assertIn("success", response.data)
+
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertIsNone(registration_token_redis.get(
             RedisKeyGenerator.get_registration_token_key(registration_token)
         ))
 
-        # check if user object gets created
+        customer_created = Customer.objects.filter(phone_number=self.phone_number).exists()
+        self.assertTrue(customer_created)

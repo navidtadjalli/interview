@@ -7,6 +7,7 @@ from achare_interview.utils import exceptions, error_messages
 from achare_interview.utils.registration_token import get_registration_token, validate_registration_token
 from achare_interview.utils.validation_code import create_validation_code, validate_validation_code
 from customer import serializers
+from customer.models import Customer
 
 
 class AuthenticateAPIView(generics.GenericAPIView):
@@ -59,4 +60,9 @@ class RegisterAPIView(generics.GenericAPIView):
         except exceptions.RegistrationTokenIsNotValidException:
             return Response(error_messages.REGISTRATION_TOKEN_IS_NOT_VALID_ERROR_MESSAGE, status=HTTPStatus.BAD_REQUEST)
 
-        return Response({}, status=HTTPStatus.OK)
+        Customer.objects.create_user(
+            phone_number=phone_number,
+            **serializer.validated_data
+        )
+
+        return Response({"success": True}, status=HTTPStatus.OK)
