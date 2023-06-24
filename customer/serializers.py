@@ -12,8 +12,7 @@ class AuthenticateSerializer(serializers.Serializer):
         write_only=True,
         regex=r'^09\d+$',
         min_length=11,
-        max_length=11,
-        validators=[validators.UniqueValidator(Customer.objects.all())]
+        max_length=11
     )
     duration = serializers.IntegerField(
         read_only=True,

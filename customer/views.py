@@ -17,7 +17,12 @@ class AuthenticateAPIView(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        create_validation_code(phone_number=serializer.validated_data.pop("phone_number"))
+        phone_number: str = serializer.validated_data.pop("phone_number")
+
+        if Customer.objects.filter(phone_number=phone_number).exists():
+            return Response({"can_login": True}, status=HTTPStatus.OK)
+
+        create_validation_code(phone_number=phone_number)
         return Response(serializer.data, status=HTTPStatus.OK)
 
 
@@ -66,3 +71,8 @@ class RegisterAPIView(generics.GenericAPIView):
         )
 
         return Response({"success": True}, status=HTTPStatus.OK)
+
+
+class LoginAPIView(generics.GenericAPIView):
+    def post(self, request):
+        return Response()

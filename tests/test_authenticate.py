@@ -55,7 +55,7 @@ class AuthenticateTestCase(APITestCase):
         redis_value_str: str = redis_value.decode(encoding='utf-8')
         self.assertEqual(redis_value_str, phone_number[-6:])
 
-    def test_if_authenticate_checks_phone_number_existence(self):
+    def test_if_authenticate_responses_contains_can_login_field_if_phone_number_exists(self):
         reset_redis(validation_code_redis)
 
         phone_number: str = "09123456789"
@@ -67,4 +67,6 @@ class AuthenticateTestCase(APITestCase):
 
         response = self.client.post(self.url, data={"phone_number": phone_number})
 
-        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertIn("can_login", response.data)
+        self.assertTrue(response.data["can_login"])
