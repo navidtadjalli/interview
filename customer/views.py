@@ -1,5 +1,6 @@
 from http import HTTPStatus
 
+from django.contrib.auth import authenticate
 from rest_framework import generics
 from rest_framework.response import Response
 
@@ -70,9 +71,26 @@ class RegisterAPIView(generics.GenericAPIView):
             **serializer.validated_data
         )
 
-        return Response({"success": True}, status=HTTPStatus.OK)
+        return Response({"token": "TOKEN"}, status=HTTPStatus.OK)
 
 
 class LoginAPIView(generics.GenericAPIView):
+    serializer_class = serializers.LoginSerializer
+
     def post(self, request):
-        return Response()
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        phone_number: str = serializer.validated_data.pop("phone_number")
+        password: str = serializer.validated_data.pop("password")
+
+        if not Customer.objects.filter(phone_number=phone_number).exists():
+            return Response(error_messages.PHONE_NUMBER_OR_PASSWORD_IS_INCORRECT_ERROR_MESSAGE,
+                            status=HTTPStatus.BAD_REQUEST)
+
+        customer: Customer = authenticate(request, phone_number=phone_number, password=password)
+        if not customer:
+            return Response(error_messages.PHONE_NUMBER_OR_PASSWORD_IS_INCORRECT_ERROR_MESSAGE,
+                            status=HTTPStatus.BAD_REQUEST)
+
+        return Response({"token": "TOKEN"}, status=HTTPStatus.OK)

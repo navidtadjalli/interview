@@ -28,8 +28,7 @@ class ValidateSerializer(serializers.Serializer):
         write_only=True,
         regex=r'^09\d+$',
         min_length=11,
-        max_length=11,
-        validators=[validators.UniqueValidator(Customer.objects.all())]
+        max_length=11
     )
     code = serializers.RegexField(
         allow_blank=False,
@@ -88,4 +87,22 @@ class RegisterSerializer(serializers.Serializer):
         write_only=True,
         min_length=32,
         max_length=32
+    )
+
+
+class LoginSerializer(serializers.Serializer):
+    phone_number = serializers.RegexField(
+        allow_blank=False,
+        allow_null=False,
+        required=True,
+        write_only=True,
+        regex=r'^09\d+$',
+        min_length=11,
+        max_length=11
+    )
+    password = serializers.CharField(
+        allow_blank=False,
+        allow_null=False,
+        required=True,
+        write_only=True
     )

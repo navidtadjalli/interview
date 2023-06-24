@@ -143,7 +143,7 @@ class RegisterTestCase(APITestCase):
             "password": self.password
         })
 
-        self.assertIn("success", response.data)
+        self.assertIn("token", response.data)
 
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertIsNone(registration_token_redis.get(
