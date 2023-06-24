@@ -76,6 +76,12 @@ class RegisterSerializer(serializers.Serializer):
         min_length=3,
         max_length=150
     )
+    password = serializers.CharField(
+        allow_blank=False,
+        allow_null=False,
+        required=True,
+        write_only=True
+    )
     registration_token = serializers.CharField(
         allow_blank=False,
         allow_null=False,

@@ -1,8 +1,7 @@
 TODO:
 
- - Complete tests of `register`
+ - Add another step for password - changed to add password field
  - Add `login`
- - Add another step for password
  - Complete `AttemptMiddleware` for IP checking
  - Create `Dockerfile`
  - Complete `Makefile`

@@ -20,6 +20,7 @@ class RegisterTestCase(APITestCase):
         self.code = self.phone_number[-6:]
         self.first_name = "first_name"
         self.last_name = "last_name"
+        self.password = "password"
         self.sample_token = uuid4().hex
 
     def delete_redis(self):
@@ -45,6 +46,7 @@ class RegisterTestCase(APITestCase):
         self.assertIn("first_name", response.data.keys())
         self.assertIn("last_name", response.data.keys())
         self.assertIn("registration_token", response.data.keys())
+        self.assertIn("password", response.data.keys())
 
     # skipping phone_number tests because it got tested in test_authenticate test cases it'll be skipped here
 
@@ -114,7 +116,8 @@ class RegisterTestCase(APITestCase):
             "phone_number": self.phone_number,
             "first_name": self.first_name,
             "last_name": self.last_name,
-            "registration_token": self.sample_token
+            "registration_token": self.sample_token,
+            "password": self.password
         })
 
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
@@ -131,7 +134,8 @@ class RegisterTestCase(APITestCase):
             "phone_number": self.phone_number,
             "first_name": self.first_name,
             "last_name": self.last_name,
-            "registration_token": registration_token
+            "registration_token": registration_token,
+            "password": self.password
         })
 
         self.assertIn("success", response.data)
