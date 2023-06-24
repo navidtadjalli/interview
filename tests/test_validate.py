@@ -1,5 +1,7 @@
 from http import HTTPStatus
+from time import sleep
 
+from django.conf import settings
 from django.urls import reverse
 from rest_framework.test import APITestCase
 
@@ -71,3 +73,16 @@ class ValidateTestCase(APITestCase):
 
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertIn("registration_token", response.data)
+
+    def test_validate_responses_for_expired_code(self):
+        reset_redis(validation_code_redis)
+        settings.GENERATED_CODE_TIME_TO_LIVE = 1
+
+        phone_number: str = "09123456789"
+
+        self.client.post(self.authenticate_url, data={"phone_number": phone_number})
+        sleep(2)
+        response = self.client.post(self.url, data={"phone_number": phone_number, "code": "456789"})
+
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertEqual(response.data, error_messages.VALIDATION_CODE_EXPIRED_ERROR_MESSAGE)

@@ -117,11 +117,31 @@ class RegisterTestCase(APITestCase):
         self.assertIn("registration_token", response.data)
 
     def test_if_register_checks_registration_token(self):
+        self.delete_redis()
+
         response = self.client.post(self.register_url, data={
             "phone_number": self.phone_number,
             "first_name": self.first_name,
             "last_name": self.last_name,
             "registration_token": self.sample_token,
+            "password": self.password
+        })
+
+        self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+        self.assertEqual(response.data, error_messages.REGISTRATION_TOKEN_IS_NOT_VALID_ERROR_MESSAGE)
+
+    def test_if_register_checks_registration_token_value_from_redis(self):
+        self.delete_redis()
+
+        self.client.post(self.authenticate_url, data={"phone_number": self.phone_number})
+        validate_response = self.client.post(self.validate_url, data={"phone_number": self.phone_number,
+                                                                      "code": self.code})
+        registration_token: str = validate_response.data["registration_token"]
+        response = self.client.post(self.register_url, data={
+            "phone_number": "09112345678",
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "registration_token": registration_token,
             "password": self.password
         })
 
