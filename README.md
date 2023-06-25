@@ -1,7 +1,3 @@
-TODO:
-
- - Complete `AttemptMiddleware` for IP checking
-
 # Achare Interview Project
 
 This repository contains codes to achare interview project.
@@ -50,3 +46,8 @@ Run docker image with following command
 ```
 docker run -p 8000:8000 -t achare_project
 ```
+
+## Excuses
+I did not write test cases for CustomerManager because I just copied it from the original manager and just removed username from it.
+
+I did not write test cases for parts of code that I was sure were copied from else where in the project and were fully tested in the original place. 
