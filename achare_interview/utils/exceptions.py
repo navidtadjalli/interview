@@ -14,6 +14,10 @@ class MaximumAttemptException(Exception):
     pass
 
 
+class KeyHasBeenBlockedException(Exception):
+    pass
+
+
 class PhoneNumberHasBeenBlockedException(Exception):
     pass
 

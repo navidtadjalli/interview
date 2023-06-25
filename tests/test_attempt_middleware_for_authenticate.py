@@ -25,16 +25,12 @@ class AttemptMiddlewareForAuthenticateTestCase(CustomAPITestCase):
 
     def call_authenticate_endpoint(self, phone_number: str, ip: Optional[str] = None):
         response = self.call_endpoint_with_post(self.authenticate_url,
-                                                data={
-                                                    "phone_number": phone_number
-                                                },
-                                                headers={
-                                                    "X_FORWARDED_FOR": ip
-                                                })
+                                                data={"phone_number": phone_number},
+                                                headers={"X_FORWARDED_FOR": ip})
 
         return response
 
-    def test_if_authenticate_attempts_for_phone_number_saves_into_redis(self):
+    def test_if_authenticate_attempts_for_phone_number_and_ip_saves_into_redis(self):
         self.reset_redis()
 
         self.call_authenticate_endpoint(self.phone_numbers[0], self.ips[0])

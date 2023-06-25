@@ -32,3 +32,19 @@ def set_attempts_for_ip_for_authenticate(ip: str, attempts_count: int):
 
 def get_attempts_for_ip_for_authenticate(ip: str) -> int:
     return get_attempts(key_generators.get_ip_attempts_key_for_authenticate(ip))
+
+
+def set_attempts_for_phone_number_for_validate(phone_number: str, attempts_count: int):
+    set_attempts(key_generators.get_phone_number_attempts_key_for_validate(phone_number), attempts_count)
+
+
+def set_attempts_for_ip_for_validate(ip: str, attempts_count: int):
+    set_attempts(key_generators.get_ip_attempts_key_for_validate(ip), attempts_count)
+
+
+def get_attempts_for_phone_number_for_validate(phone_number: str):
+    return get_attempts(key_generators.get_phone_number_attempts_key_for_validate(phone_number))
+
+
+def get_attempts_for_ip_for_validate(ip: str):
+    return get_attempts(key_generators.get_ip_attempts_key_for_validate(ip))

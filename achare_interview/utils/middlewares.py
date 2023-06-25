@@ -9,7 +9,7 @@ from django.urls import reverse
 from rest_framework.response import Response
 
 from achare_interview.utils import error_messages, exceptions
-from achare_interview.utils.redis_utils import attempts_count, blocked
+from achare_interview.utils.redis_utils import attempts_count, blocked, key_generators
 
 
 class AttemptMiddleware:
@@ -60,41 +60,39 @@ class AttemptMiddleware:
 
         return ""
 
-    def block_ip(self, ip: str):
-        blocked.set_block_key_for_ip(ip)
+    def block_key(self, key: str):
+        blocked.set_block_key(key)
 
-    def check_if_ip_is_blocked(self, phone_number: str):
-        if blocked.is_ip_blocked(phone_number):
-            raise exceptions.IPHasBeenBlockedException()
+    def check_if_key_is_blocked(self, key: str):
+        if blocked.is_key_blocked(key):
+            raise exceptions.KeyHasBeenBlockedException()
 
-    def block_phone_number(self, phone_number: str):
-        blocked.set_block_key_for_phone_number(phone_number)
+    def check_attempts(self, key: str, block_key: str):
+        current_attempts: int = attempts_count.get_attempts(key)
 
-    def check_if_phone_number_is_blocked(self, phone_number: str):
-        if blocked.is_phone_number_blocked(phone_number):
-            raise exceptions.PhoneNumberHasBeenBlockedException()
+        if current_attempts >= settings.MAXIMUM_CODE_REQUEST_COUNT:
+            self.block_key(block_key)
+            raise exceptions.MaximumAttemptException()
+
+        attempts_count.set_attempts(key, current_attempts + 1)
 
     def check_ip_attempts(self, ip: str):
-        self.check_if_ip_is_blocked(ip)
+        try:
+            self.check_if_key_is_blocked(key_generators.get_blocked_key_for_ip(ip))
+        except exceptions.KeyHasBeenBlockedException:
+            raise exceptions.IPHasBeenBlockedException()
 
-        current_ip_attempts_count: int = attempts_count.get_attempts_for_ip_for_authenticate(ip)
-
-        if current_ip_attempts_count >= settings.MAXIMUM_CODE_REQUEST_COUNT:
-            self.block_ip(ip)
-            raise exceptions.MaximumAttemptException()
-
-        attempts_count.set_attempts_for_ip_for_authenticate(ip, current_ip_attempts_count + 1)
+        self.check_attempts(key_generators.get_ip_attempts_key_for_authenticate(ip),
+                            key_generators.get_blocked_key_for_ip(ip))
 
     def check_phone_number_attempts(self, phone_number: str):
-        self.check_if_phone_number_is_blocked(phone_number)
+        try:
+            self.check_if_key_is_blocked(key_generators.get_blocked_key_for_phone_number(phone_number))
+        except exceptions.KeyHasBeenBlockedException:
+            raise exceptions.PhoneNumberHasBeenBlockedException()
 
-        current_attempts_count: int = attempts_count.get_attempts_for_phone_number_for_authenticate(phone_number)
-
-        if current_attempts_count >= settings.MAXIMUM_CODE_REQUEST_COUNT:
-            self.block_phone_number(phone_number)
-            raise exceptions.MaximumAttemptException()
-
-        attempts_count.set_attempts_for_phone_number_for_authenticate(phone_number, current_attempts_count + 1)
+        self.check_attempts(key_generators.get_phone_number_attempts_key_for_authenticate(phone_number),
+                            key_generators.get_blocked_key_for_phone_number(phone_number))
 
     def do_pre_request_stuff(self, request_path: str, ip: str, phone_number: str):
         if request_path in self.request_sensitive_path_list:
@@ -108,8 +106,14 @@ class AttemptMiddleware:
     #     blocked.delete_phone_number_attempts(ip)
 
     def do_post_request_stuff(self, response: Response, request_path: str, ip: str, phone_number: str):
-        pass
-        # if request_path in self.response_sensitive_path_list:
-        #     if request_path == reverse("validate"):
-        #         if response.status_code == HTTPStatus.BAD_REQUEST and
-        #             response.data == error_messages.VALIDATION_CODE_DOES_NOT_MATCH_ERROR_MESSAGE:
+        if request_path in self.response_sensitive_path_list:
+            if request_path == reverse("validate"):
+                if response.status_code == HTTPStatus.BAD_REQUEST and \
+                        response.data == error_messages.VALIDATION_CODE_DOES_NOT_MATCH_ERROR_MESSAGE:
+                    current_phone_number_attempts_count: int = attempts_count.get_attempts_for_phone_number_for_validate(
+                        phone_number)
+                    attempts_count.set_attempts_for_phone_number_for_validate(phone_number, current_phone_number_attempts_count + 1)
+
+                    current_ip_attempts_count: int = attempts_count.get_attempts_for_ip_for_validate(
+                        ip)
+                    attempts_count.set_attempts_for_ip_for_validate(ip, current_ip_attempts_count + 1)

@@ -18,19 +18,15 @@ class AttemptMiddlewareTestCase(CustomAPITestCase):
         self.phone_numbers = [f"0912305678{i}" for i in range(1, 5)]
         self.ips = [f"192.168.1.{i}" for i in range(1, 5)]
 
-        self.phone_number_attempts_keys = [key_generators.get_phone_number_attempts_key(pn)
+        self.phone_number_attempts_keys = [key_generators.get_phone_number_attempts_key_for_validate(pn)
                                            for pn in self.phone_numbers]
-        self.ip_attempts_keys = [key_generators.get_ip_attempts_key(ip)
+        self.ip_attempts_keys = [key_generators.get_ip_attempts_key_for_validate(ip)
                                  for ip in self.ips]
 
     def call_authenticate_endpoint(self, phone_number: str, ip: Optional[str] = None):
         response = self.call_endpoint_with_post(self.authenticate_url,
-                                                data={
-                                                    "phone_number": phone_number
-                                                },
-                                                headers={
-                                                    "X_FORWARDED_FOR": ip
-                                                })
+                                                data={"phone_number": phone_number},
+                                                headers={"X_FORWARDED_FOR": ip})
 
         return response
 
@@ -41,54 +37,50 @@ class AttemptMiddlewareTestCase(CustomAPITestCase):
             headers={"X_FORWARDED_FOR": ip}
         )
 
-    def call_login_endpoint(self, phone_number: str, ip: str):
-        return self.call_endpoint_with_post(
-            self.login_url,
-            data={"phone_number": phone_number, "password": "password"},
-            headers={"X_FORWARDED_FOR": ip}
-        )
+    def test_if_validate_attempts_for_phone_number_and_ip_saves_into_redis(self):
+        self.reset_redis()
 
-    # def test_if_authenticate_attempts_for_phone_number_saves_into_redis(self):
-    #     self.reset_redis()
-    #
-    #     self.call_authenticate_endpoint(self.phone_numbers[0], self.ips[0])
-    #     phone_number_attempts_redis_value: bytes = redis_client.attempts_redis.get(self.phone_number_attempts_keys[0])
-    #     ip_attempts_redis_value: bytes = redis_client.attempts_redis.get(self.ip_attempts_keys[0])
-    #
-    #     self.assertIsNotNone(phone_number_attempts_redis_value)
-    #     self.assertIsNotNone(ip_attempts_redis_value)
-    #
-    #     phone_number_attempts: str = phone_number_attempts_redis_value.decode(encoding='utf-8')
-    #     ip_attempts: str = ip_attempts_redis_value.decode(encoding='utf-8')
-    #
-    #     self.assertEqual(phone_number_attempts, "1", msg="Phone number attempts did not saved into redis")
-    #     self.assertEqual(ip_attempts, "1", msg="IP attempts did not saved into redis")
-    #
-    # def test_if_saved_authenticate_attempts_for_phone_number_and_ip_have_ttl_in_redis(self):
-    #     self.reset_redis()
-    #
-    #     self.call_authenticate_endpoint(self.phone_numbers[0], self.ips[0])
-    #     phone_number_attempts_ttl: bytes = redis_client.attempts_redis.ttl(self.phone_number_attempts_keys[0])
-    #     ip_attempts_ttl: bytes = redis_client.attempts_redis.ttl(self.ip_attempts_keys[0])
-    #
-    #     self.assertNotEqual(phone_number_attempts_ttl, -1, msg="Phone number attempts do not have TTL")
-    #     self.assertNotEqual(ip_attempts_ttl, -1, msg="IP attempts do not have TTL")
-    #
-    # def test_if_authenticate_attempts_for_phone_number_and_ip_increases_on_request(self):
-    #     self.reset_redis()
-    #
-    #     self.call_authenticate_endpoint(self.phone_numbers[0], self.ips[0])
-    #     self.call_authenticate_endpoint(self.phone_numbers[0], self.ips[0])
-    #
-    #     phone_number_attempts_redis_value: bytes = redis_client.attempts_redis.get(self.phone_number_attempts_keys[0])
-    #     phone_number_attempts: str = phone_number_attempts_redis_value.decode(encoding='utf-8')
-    #
-    #     ip_attempts_redis_value: bytes = redis_client.attempts_redis.get(self.ip_attempts_keys[0])
-    #     ip_attempts: str = ip_attempts_redis_value.decode(encoding='utf-8')
-    #
-    #     self.assertEqual(phone_number_attempts, "2", msg="Phone number attempts did not get increased")
-    #     self.assertEqual(ip_attempts, "2", msg="IP attempts did not get increased")
-    #
+        self.call_authenticate_endpoint(self.phone_numbers[0], self.ips[0])
+        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0], "111111")
+        phone_number_attempts_redis_value: bytes = redis_client.attempts_redis.get(self.phone_number_attempts_keys[0])
+        ip_attempts_redis_value: bytes = redis_client.attempts_redis.get(self.ip_attempts_keys[0])
+
+        self.assertIsNotNone(phone_number_attempts_redis_value)
+        self.assertIsNotNone(ip_attempts_redis_value)
+
+        phone_number_attempts: str = phone_number_attempts_redis_value.decode(encoding='utf-8')
+        ip_attempts: str = ip_attempts_redis_value.decode(encoding='utf-8')
+
+        self.assertEqual(phone_number_attempts, "1", msg="Phone number attempts did not saved into redis")
+        self.assertEqual(ip_attempts, "1", msg="IP attempts did not saved into redis")
+
+    def test_if_saved_validate_attempts_for_phone_number_and_ip_have_ttl_in_redis(self):
+        self.reset_redis()
+
+        self.call_authenticate_endpoint(self.phone_numbers[0], self.ips[0])
+        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0], "111111")
+        phone_number_attempts_ttl: bytes = redis_client.attempts_redis.ttl(self.phone_number_attempts_keys[0])
+        ip_attempts_ttl: bytes = redis_client.attempts_redis.ttl(self.ip_attempts_keys[0])
+
+        self.assertNotEqual(phone_number_attempts_ttl, -1, msg="Phone number attempts do not have TTL")
+        self.assertNotEqual(ip_attempts_ttl, -1, msg="IP attempts do not have TTL")
+
+    def test_if_validate_attempts_for_phone_number_and_ip_increases_on_request(self):
+        self.reset_redis()
+
+        self.call_authenticate_endpoint(self.phone_numbers[0], self.ips[0])
+        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0], "111111")
+        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0], "111111")
+
+        phone_number_attempts_redis_value: bytes = redis_client.attempts_redis.get(self.phone_number_attempts_keys[0])
+        phone_number_attempts: str = phone_number_attempts_redis_value.decode(encoding='utf-8')
+
+        ip_attempts_redis_value: bytes = redis_client.attempts_redis.get(self.ip_attempts_keys[0])
+        ip_attempts: str = ip_attempts_redis_value.decode(encoding='utf-8')
+
+        self.assertEqual(phone_number_attempts, "2", msg="Phone number attempts did not get increased")
+        self.assertEqual(ip_attempts, "2", msg="IP attempts did not get increased")
+
     # def test_if_authenticate_attempts_count_for_phone_number_get_checked(self):
     #     self.reset_redis()
     #
