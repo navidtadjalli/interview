@@ -78,25 +78,31 @@ class AttemptMiddleware:
             ip = request.META.get('REMOTE_ADDR')
         return ip
 
+    def check_ip_attempts(self, request: WSGIRequest):
+        ip: str = self.get_client_ip(request)
+
+        current_ip_attempts_count: int = attempts_count.get_attempts_for_ip(ip)
+
+        if current_ip_attempts_count >= settings.MAXIMUM_CODE_REQUEST_COUNT:
+            raise exceptions.MaximumPhoneNumberAttemptException()
+
+        attempts_count.set_attempts_for_ip(ip,
+                                           current_ip_attempts_count + 1)
+
+    def check_phone_number_attempts(self, request: WSGIRequest):
+        body_dict: dict = json.loads(request.body)
+        phone_number: str = body_dict["phone_number"]
+        current_attempts_count: int = attempts_count.get_attempts_for_phone_number(phone_number)
+
+        if current_attempts_count >= settings.MAXIMUM_CODE_REQUEST_COUNT:
+            raise exceptions.MaximumPhoneNumberAttemptException()
+
+        attempts_count.set_attempts_for_phone_number(phone_number,
+                                                     current_attempts_count + 1)
+
     def do_pre_request_stuff(self, request: WSGIRequest):
         if request.path == reverse("authenticate"):
-            ip: str = self.get_client_ip(request)
-
-            current_ip_attempts_count: int = attempts_count.get_attempts_for_ip(ip)
-
-            if current_ip_attempts_count >= settings.MAXIMUM_CODE_REQUEST_COUNT:
-                raise exceptions.MaximumPhoneNumberAttemptException()
-
-            attempts_count.set_attempts_for_ip(ip,
-                                               current_ip_attempts_count + 1)
+            self.check_ip_attempts(request)
 
             if request.body:
-                body_dict: dict = json.loads(request.body)
-                phone_number: str = body_dict["phone_number"]
-                current_attempts_count: int = attempts_count.get_attempts_for_phone_number(phone_number)
-
-                if current_attempts_count >= settings.MAXIMUM_CODE_REQUEST_COUNT:
-                    raise exceptions.MaximumPhoneNumberAttemptException()
-
-                attempts_count.set_attempts_for_phone_number(phone_number,
-                                                             current_attempts_count + 1)
+                self.check_phone_number_attempts(request)

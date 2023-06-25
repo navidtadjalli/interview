@@ -37,24 +37,42 @@ class AttemptMiddlewareTestCase(CustomAPITestCase):
         self.reset_redis()
 
         self.call_authenticate_endpoint(self.phone_numbers[0], self.ips[0])
-        redis_value: bytes = redis_client.attempts_redis.get(self.phone_number_attempts_keys[0])
+        phone_number_attempts_redis_value: bytes = redis_client.attempts_redis.get(self.phone_number_attempts_keys[0])
+        ip_attempts_redis_value: bytes = redis_client.attempts_redis.get(self.ip_attempts_keys[0])
 
-        self.assertIsNotNone(redis_value)
+        self.assertIsNotNone(phone_number_attempts_redis_value)
+        self.assertIsNotNone(ip_attempts_redis_value)
 
-        redis_value_decoded: str = redis_value.decode(encoding='utf-8')
+        phone_number_attempts: str = phone_number_attempts_redis_value.decode(encoding='utf-8')
+        ip_attempts: str = ip_attempts_redis_value.decode(encoding='utf-8')
 
-        self.assertEqual(redis_value_decoded, "1")
+        self.assertEqual(phone_number_attempts, "1", msg="Phone number attempts did not saved into redis")
+        self.assertEqual(ip_attempts, "1", msg="IP attempts did not saved into redis")
 
-    def test_if_request_attempts_for_phone_number_increases_on_request(self):
+    def test_if_saved_attempts_for_phone_number_and_ip_have_ttl_in_redis(self):
         self.reset_redis()
 
         self.call_authenticate_endpoint(self.phone_numbers[0], self.ips[0])
-        self.call_authenticate_endpoint(self.phone_numbers[0], self.ips[1])
+        phone_number_attempts_ttl: bytes = redis_client.attempts_redis.ttl(self.phone_number_attempts_keys[0])
+        ip_attempts_ttl: bytes = redis_client.attempts_redis.ttl(self.ip_attempts_keys[0])
 
-        redis_value: bytes = redis_client.attempts_redis.get(self.phone_number_attempts_keys[0])
-        redis_value_decoded: str = redis_value.decode(encoding='utf-8')
+        self.assertNotEqual(phone_number_attempts_ttl, -1, msg="Phone number attempts do not have TTL")
+        self.assertNotEqual(ip_attempts_ttl, -1, msg="IP attempts do not have TTL")
 
-        self.assertEqual(redis_value_decoded, "2")
+    def test_if_request_attempts_for_phone_number_and_ip_increases_on_request(self):
+        self.reset_redis()
+
+        self.call_authenticate_endpoint(self.phone_numbers[0], self.ips[0])
+        self.call_authenticate_endpoint(self.phone_numbers[0], self.ips[0])
+
+        phone_number_attempts_redis_value: bytes = redis_client.attempts_redis.get(self.phone_number_attempts_keys[0])
+        phone_number_attempts: str = phone_number_attempts_redis_value.decode(encoding='utf-8')
+
+        ip_attempts_redis_value: bytes = redis_client.attempts_redis.get(self.ip_attempts_keys[0])
+        ip_attempts: str = ip_attempts_redis_value.decode(encoding='utf-8')
+
+        self.assertEqual(phone_number_attempts, "2", msg="Phone number attempts did not get increased")
+        self.assertEqual(ip_attempts, "2", msg="IP attempts did not get increased")
 
     def test_if_request_attempts_count_for_phone_number_get_checked(self):
         self.reset_redis()
@@ -67,29 +85,6 @@ class AttemptMiddlewareTestCase(CustomAPITestCase):
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
         self.assertEqual(response.data, error_messages.IP_HAS_BEEN_BLOCKED_ERROR_MESSAGE)
 
-    def test_if_request_attempts_for_ip_saves_into_redis(self):
-        self.reset_redis()
-
-        self.call_authenticate_endpoint(self.phone_numbers[0], self.ips[0])
-        redis_value: bytes = redis_client.attempts_redis.get(self.ip_attempts_keys[0])
-
-        self.assertIsNotNone(redis_value)
-
-        redis_value_decoded: str = redis_value.decode(encoding='utf-8')
-
-        self.assertEqual(redis_value_decoded, "1")
-
-    def test_if_request_attempts_for_ip_increases_on_request(self):
-        self.reset_redis()
-
-        self.call_authenticate_endpoint(self.phone_numbers[0], self.ips[0])
-        self.call_authenticate_endpoint(self.phone_numbers[1], self.ips[0])
-
-        redis_value: bytes = redis_client.attempts_redis.get(self.ip_attempts_keys[0])
-        redis_value_decoded: str = redis_value.decode(encoding='utf-8')
-
-        self.assertEqual(redis_value_decoded, "2")
-
     def test_if_request_attempts_count_for_ip_get_checked(self):
         self.reset_redis()
 
@@ -101,33 +96,8 @@ class AttemptMiddlewareTestCase(CustomAPITestCase):
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
         self.assertEqual(response.data, error_messages.IP_HAS_BEEN_BLOCKED_ERROR_MESSAGE)
 
-    # def test_if_different_attempts_from_one_ip_and_different_phone_numbers_gets_checked(self):
-    #     self.delete_redis_keys()
-    #     fake_code = True
-    #
-    #     create_validation_code(self.phone_numbers[0], self.ips[0])
-    #     create_validation_code(self.phone_numbers[1], self.ips[0])
-    #     create_validation_code(self.phone_numbers[2], self.ips[0])
-    #
-    #     with self.assertRaises(exceptions.MaximumIPAttemptException):
-    #         create_validation_code(self.phone_numbers[3], self.ips[0])
-    #
-    # # postponing remaining tests after middleware created
-    # # attempts ttl
     # # def test_if_phone_number_get_blocked_after_three_times(self):
     # # def test_if_ip_get_blocked_after_three_times(self):
-    # # def test_if_request_blocked_ips_has_ttl(self):
+    # # def test_if_request_blocked_phone_number_has_ttl(self):
+    # # def test_if_request_blocked_ip_has_ttl(self):
     # # def test_if_attempts_count_get_deleted_after_successful_validation
-
-    # def test_if_different_attempts_from_different_ips_increases_phone_number_attempts(self):
-    #     self.delete_redis_keys()
-    #     fake_code = True
-    #
-    #     create_validation_code(self.phone_numbers[0], self.ips[0])
-    #     create_validation_code(self.phone_numbers[0], self.ips[1])
-    #     create_validation_code(self.phone_numbers[0], self.ips[2])
-    #
-    #     with self.assertRaises(exceptions.MaximumPhoneNumberAttemptException):
-    #         create_validation_code(self.phone_numbers[0], self.ips[3])
-    #
-    #
