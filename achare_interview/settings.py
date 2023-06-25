@@ -125,8 +125,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = "customer.Customer"
 
-SENSITIVE_ENDPOINTS_NAMES = [
+REQUEST_SENSITIVE_ENDPOINTS_NAMES = [
     "authenticate",
+]
+
+RESPONSE_SENSITIVE_ENDPOINTS_NAMES = [
     "validate",
     "login"
 ]
