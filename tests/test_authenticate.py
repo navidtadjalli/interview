@@ -13,21 +13,26 @@ class AuthenticateTestCase(CustomAPITestCase):
         self.url = reverse('authenticate')
 
     def test_if_authenticate_endpoint_exists(self):
+        self.reset_redis()
         self.assertNotEqual(self.call_endpoint_with_get(self.url).status_code, HTTPStatus.NOT_FOUND)
 
     def test_if_validate_endpoint_method_type_is_post(self):
+        self.reset_redis()
         self.assertEqual(self.call_endpoint_with_get(self.url).status_code, HTTPStatus.METHOD_NOT_ALLOWED)
         self.assertNotEqual(self.call_endpoint_with_post(self.url).status_code, HTTPStatus.METHOD_NOT_ALLOWED)
 
     def test_if_authenticate_checks_phone_number_is_sent_in_body(self):
+        self.reset_redis()
         self.assertEqual(self.call_endpoint_with_post(self.url).status_code, HTTPStatus.BAD_REQUEST)
 
     def test_if_authenticate_validates_phone_number_being_numeric(self):
+        self.reset_redis()
         self.assertEqual(self.call_endpoint_with_post(self.url,
                                                       data={"phone_number": "test"}).status_code,
                          HTTPStatus.BAD_REQUEST)
 
     def test_if_authenticate_validates_phone_number_length(self):
+        self.reset_redis()
         self.assertEqual(self.call_endpoint_with_post(self.url,
                                                       data={"phone_number": "09"}).status_code, HTTPStatus.BAD_REQUEST,
                          msg="Authenticate does not check have minimum length validation for phone_number field")
@@ -37,6 +42,7 @@ class AuthenticateTestCase(CustomAPITestCase):
                          msg="Authenticate does not check have maximum length validation for phone_number field")
 
     def test_if_authenticate_response_contains_duration(self):
+        self.reset_redis()
         response = self.call_endpoint_with_post(self.url,
                                                 data={"phone_number": "09123456789"})
         self.assertIn("duration", response.data)
