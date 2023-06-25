@@ -1,10 +1,10 @@
 from django.urls import reverse
-from rest_framework.test import APITestCase
 
-from achare_interview.utils.redis_utils.redis_client import attempts_redis, reset_redis, RedisKeyGenerator
+from achare_interview.utils.redis_utils import redis_client, key_generators
+from tests.custom_api_test_case import CustomAPITestCase
 
 
-class AttemptMiddlewareTestCase(APITestCase):
+class AttemptMiddlewareTestCase(CustomAPITestCase):
     def setUp(self):
         self.login_url = reverse("login")
         self.authenticate_url = reverse("authenticate")
@@ -13,21 +13,19 @@ class AttemptMiddlewareTestCase(APITestCase):
         self.phone_numbers = [f"0912305678{i}" for i in range(1, 5)]
         self.ips = [f"192.168.1.{i}" for i in range(1, 5)]
 
-        self.phone_number_attempts_keys = [RedisKeyGenerator.get_phone_number_attempts_key(pn)
+        self.phone_number_attempts_keys = [key_generators.get_phone_number_attempts_key(pn)
                                            for pn in self.phone_numbers]
-        self.ip_attempts_keys = [RedisKeyGenerator.get_ip_attempts_key(ip)
+        self.ip_attempts_keys = [key_generators.get_ip_attempts_key(ip)
                                  for ip in self.ips]
 
-    def delete_redis_keys(self):
-        reset_redis(attempts_redis)
-
     def test_if_request_attempts_for_phone_number_saves_into_redis(self):
-        self.delete_redis_keys()
+        self.reset_redis()
 
-        self.client.post(self.authenticate_url, data={
-            "phone_number": self.phone_numbers[0]
-        })
-        redis_value: bytes = attempts_redis.get(self.phone_number_attempts_keys[0])
+        self.call_endpoint_with_post(self.authenticate_url,
+                                     data={
+                                         "phone_number": self.phone_numbers[0]
+                                     })
+        redis_value: bytes = redis_client.attempts_redis.get(self.phone_number_attempts_keys[0])
 
         self.assertIsNotNone(redis_value)
 

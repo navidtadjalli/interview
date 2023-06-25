@@ -132,7 +132,7 @@ class RegisterTestCase(CustomAPITestCase):
         self.assertEqual(response.data, error_messages.REGISTRATION_TOKEN_IS_NOT_VALID_ERROR_MESSAGE)
 
     def test_if_register_checks_registration_token_value_from_redis(self):
-        self.delete_redis()
+        self.reset_redis()
 
         self.call_endpoint_with_post(self.authenticate_url,
                                      data={"phone_number": self.phone_number})

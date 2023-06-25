@@ -1,3 +1,5 @@
+import json
+
 from django.core.handlers.wsgi import WSGIRequest
 
 
@@ -39,6 +41,7 @@ from django.core.handlers.wsgi import WSGIRequest
 #         raise exceptions.MaximumIPAttemptException()
 from django.urls import reverse
 
+from achare_interview.utils.redis_utils import key_generators
 from achare_interview.utils.redis_utils.redis_client import attempts_redis
 
 
@@ -48,8 +51,11 @@ class AttemptMiddleware:
         # One-time configuration and initialization.
 
     def __call__(self, request: WSGIRequest):
-        # if request.path == reverse("authenticate"):
-        #     attempts_redis.set()
+        if request.path == reverse("authenticate"):
+            if request.body:
+                body_dict: dict = json.loads(request.body)
+                phone_number: str = body_dict["phone_number"]
+                attempts_redis.set(key_generators.get_phone_number_attempts_key(phone_number), "1")
 
         # Code to be executed for each request before
         # the view (and later middleware) are called.
