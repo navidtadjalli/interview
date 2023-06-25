@@ -125,9 +125,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = "customer.Customer"
 
-SENSITIVE_ENDPOINTS = [
-    "/register",
-    "/login"
+SENSITIVE_ENDPOINTS_NAMES = [
+    "authenticate",
+    "validate",
+    "login"
 ]
 
 # Redis data configurations

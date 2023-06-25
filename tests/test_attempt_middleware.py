@@ -34,6 +34,20 @@ class AttemptMiddlewareTestCase(CustomAPITestCase):
 
         return response
 
+    def call_validate_endpoint(self, phone_number: str, ip: str):
+        return self.call_endpoint_with_post(
+            self.validate_url,
+            data={"phone_number": phone_number, "code": "111111"},
+            headers={"X_FORWARDED_FOR": ip}
+        )
+
+    def call_login_endpoint(self, phone_number: str, ip: str):
+        return self.call_endpoint_with_post(
+            self.login_url,
+            data={"phone_number": phone_number, "password": "password"},
+            headers={"X_FORWARDED_FOR": ip}
+        )
+
     def test_if_request_attempts_for_phone_number_saves_into_redis(self):
         self.reset_redis()
 
@@ -183,4 +197,115 @@ class AttemptMiddlewareTestCase(CustomAPITestCase):
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
         self.assertEqual(response.data, error_messages.IP_HAS_BEEN_BLOCKED_ERROR_MESSAGE)
 
-    # # def test_if_attempts_count_get_deleted_after_successful_validation
+    def test_if_blocking_phone_number_works_for_validate_endpoint(self):
+        self.reset_redis()
+
+        self.call_authenticate_endpoint(self.phone_numbers[0], self.ips[0])
+
+        response = None
+        for i in range(0, 3):
+            response = self.call_validate_endpoint(self.phone_numbers[0], self.ips[i])
+
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN,
+                         msg="Validate endpoint status is not forbidden after 3 times for Phone Number.")
+        self.assertEqual(response.data, error_messages.REQUESTED_MORE_THAN_3_TIMES_ERROR_MESSAGE,
+                         msg="Validate endpoint content is not equal to REQUESTED_MORE_THAN_3_TIMES_ERROR_MESSAGE "
+                             "after 3 times for Phone Number.")
+
+        response = self.call_validate_endpoint(self.phone_numbers[0], self.ips[3])
+
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN,
+                         msg="Validate endpoint status is not forbidden after being called for more than 3 times "
+                             "for Phone Number.")
+        self.assertEqual(response.data, error_messages.PHONE_NUMBER_HAS_BEEN_BLOCKED_ERROR_MESSAGE,
+                         msg="Validate endpoint content is not equal to PHONE_NUMBER_HAS_BEEN_BLOCKED_ERROR_MESSAGE "
+                             "after being called for more than 3 times.")
+
+    def test_if_blocking_ip_works_for_validate_endpoint(self):
+        self.reset_redis()
+
+        self.call_authenticate_endpoint(self.phone_numbers[0], self.ips[0])
+
+        response = None
+        for i in range(0, 3):
+            response = self.call_validate_endpoint(self.phone_numbers[i], self.ips[0])
+
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN,
+                         msg="Validate endpoint status is not forbidden after 3 times for IP.")
+        self.assertEqual(response.data, error_messages.REQUESTED_MORE_THAN_3_TIMES_ERROR_MESSAGE,
+                         msg="Validate endpoint content is not equal to REQUESTED_MORE_THAN_3_TIMES_ERROR_MESSAGE "
+                             "after 3 times for IP.")
+
+        response = self.call_validate_endpoint(self.phone_numbers[3], self.ips[0])
+
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN,
+                         msg="Validate endpoint status is not forbidden after being called for more than 3 times "
+                             "for IP.")
+        self.assertEqual(response.data, error_messages.IP_HAS_BEEN_BLOCKED_ERROR_MESSAGE,
+                         msg="Validate endpoint content is not equal to IP_HAS_BEEN_BLOCKED_ERROR_MESSAGE "
+                             "after being called for more than 3 times.")
+
+    def test_if_blocking_phone_number_works_for_login_endpoint(self):
+        self.reset_redis()
+
+        self.call_authenticate_endpoint(self.phone_numbers[0], self.ips[0])
+
+        response = None
+        for i in range(0, 3):
+            response = self.call_login_endpoint(self.phone_numbers[0], self.ips[i])
+
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN,
+                         msg="Login endpoint status is not forbidden after 3 times for Phone Number.")
+        self.assertEqual(response.data, error_messages.REQUESTED_MORE_THAN_3_TIMES_ERROR_MESSAGE,
+                         msg="Login endpoint content is not equal to REQUESTED_MORE_THAN_3_TIMES_ERROR_MESSAGE "
+                             "after 3 times for Phone Number.")
+
+        response = self.call_login_endpoint(self.phone_numbers[0], self.ips[3])
+
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN,
+                         msg="Login endpoint status is not forbidden after being called for more than 3 times "
+                             "for Phone Number.")
+        self.assertEqual(response.data, error_messages.PHONE_NUMBER_HAS_BEEN_BLOCKED_ERROR_MESSAGE,
+                         msg="Login endpoint content is not equal to PHONE_NUMBER_HAS_BEEN_BLOCKED_ERROR_MESSAGE "
+                             "after being called for more than 3 times.")
+
+    def test_if_blocking_ip_works_for_login_endpoint(self):
+        self.reset_redis()
+
+        self.call_authenticate_endpoint(self.phone_numbers[0], self.ips[0])
+
+        response = None
+        for i in range(0, 3):
+            response = self.call_login_endpoint(self.phone_numbers[i], self.ips[0])
+
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN,
+                         msg="Login endpoint status is not forbidden after 3 times for IP.")
+        self.assertEqual(response.data, error_messages.REQUESTED_MORE_THAN_3_TIMES_ERROR_MESSAGE,
+                         msg="Login endpoint content is not equal to REQUESTED_MORE_THAN_3_TIMES_ERROR_MESSAGE "
+                             "after 3 times for IP.")
+
+        response = self.call_login_endpoint(self.phone_numbers[3], self.ips[0])
+
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN,
+                         msg="Login endpoint status is not forbidden after being called for more than 3 times "
+                             "for IP.")
+        self.assertEqual(response.data, error_messages.IP_HAS_BEEN_BLOCKED_ERROR_MESSAGE,
+                         msg="Login endpoint content is not equal to IP_HAS_BEEN_BLOCKED_ERROR_MESSAGE "
+                             "after being called for more than 3 times.")
+
+    # def test_if_phone_number_attempts_count_get_deleted_after_successful_validation(self):
+    #     self.reset_redis()
+    #
+    #     self.call_authenticate_endpoint(self.phone_numbers[0], self.ips[0])
+    #     self.call_endpoint_with_post(self.validate_url,
+    #                                  data={
+    #                                      "phone_number": self.phone_numbers[0],
+    #                                      "code": self.phone_numbers[0][-6:]
+    #                                  })
+    #
+    #     redis_value: bytes = redis_client.attempts_redis.get(key_generators.get_phone_number_attempts_key(
+    #         self.phone_numbers[0]))
+    #
+    #     self.assertIsNone(redis_value)
+
+    # def test_if_attempts_count_get_deleted_after_successful_login(self):
