@@ -23,7 +23,7 @@ class AttemptMiddlewareTestCase(CustomAPITestCase):
         self.ip_attempts_keys = [key_generators.get_ip_attempts_key_for_validate(ip)
                                  for ip in self.ips]
 
-    def call_validate_endpoint(self, phone_number: str, ip: str, code: str):
+    def call_validate_endpoint(self, phone_number: str, ip: str, code: str = "111111"):
         return self.call_endpoint_with_post(
             self.validate_url,
             data={"phone_number": phone_number, "code": code},
@@ -33,7 +33,7 @@ class AttemptMiddlewareTestCase(CustomAPITestCase):
     def test_if_validate_attempts_for_phone_number_and_ip_saves_into_redis(self):
         self.reset_redis()
 
-        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0], "111111")
+        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0])
         phone_number_attempts_redis_value: bytes = redis_client.attempts_redis.get(self.phone_number_attempts_keys[0])
         ip_attempts_redis_value: bytes = redis_client.attempts_redis.get(self.ip_attempts_keys[0])
 
@@ -49,7 +49,7 @@ class AttemptMiddlewareTestCase(CustomAPITestCase):
     def test_if_saved_validate_attempts_for_phone_number_and_ip_have_ttl_in_redis(self):
         self.reset_redis()
 
-        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0], "111111")
+        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0])
         phone_number_attempts_ttl: bytes = redis_client.attempts_redis.ttl(self.phone_number_attempts_keys[0])
         ip_attempts_ttl: bytes = redis_client.attempts_redis.ttl(self.ip_attempts_keys[0])
 
@@ -59,8 +59,8 @@ class AttemptMiddlewareTestCase(CustomAPITestCase):
     def test_if_validate_attempts_for_phone_number_and_ip_increases_on_request(self):
         self.reset_redis()
 
-        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0], "111111")
-        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0], "111111")
+        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0])
+        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0])
 
         phone_number_attempts_redis_value: bytes = redis_client.attempts_redis.get(self.phone_number_attempts_keys[0])
         phone_number_attempts: str = phone_number_attempts_redis_value.decode(encoding='utf-8')
@@ -74,10 +74,10 @@ class AttemptMiddlewareTestCase(CustomAPITestCase):
     def test_if_validate_attempts_count_for_phone_number_get_checked(self):
         self.reset_redis()
 
-        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0], "111111")
-        self.call_validate_endpoint(self.phone_numbers[0], self.ips[1], "111111")
-        self.call_validate_endpoint(self.phone_numbers[0], self.ips[2], "111111")
-        response = self.call_validate_endpoint(self.phone_numbers[0], self.ips[3], "111111")
+        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0])
+        self.call_validate_endpoint(self.phone_numbers[0], self.ips[1])
+        self.call_validate_endpoint(self.phone_numbers[0], self.ips[2])
+        response = self.call_validate_endpoint(self.phone_numbers[0], self.ips[3])
 
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
         self.assertEqual(response.data, error_messages.REQUEST_FAILED_MORE_THAN_3_TIMES_ERROR_MESSAGE)
@@ -85,10 +85,10 @@ class AttemptMiddlewareTestCase(CustomAPITestCase):
     def test_if_validate_attempts_count_for_ip_get_checked(self):
         self.reset_redis()
 
-        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0], "111111")
-        self.call_validate_endpoint(self.phone_numbers[1], self.ips[0], "111111")
-        self.call_validate_endpoint(self.phone_numbers[2], self.ips[0], "111111")
-        response = self.call_validate_endpoint(self.phone_numbers[3], self.ips[0], "111111")
+        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0])
+        self.call_validate_endpoint(self.phone_numbers[1], self.ips[0])
+        self.call_validate_endpoint(self.phone_numbers[2], self.ips[0])
+        response = self.call_validate_endpoint(self.phone_numbers[3], self.ips[0])
 
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
         self.assertEqual(response.data, error_messages.REQUEST_FAILED_MORE_THAN_3_TIMES_ERROR_MESSAGE)
@@ -96,10 +96,10 @@ class AttemptMiddlewareTestCase(CustomAPITestCase):
     def test_if_validate_phone_number_blocked_key_is_added_to_redis(self):
         self.reset_redis()
 
-        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0], "111111")
-        self.call_validate_endpoint(self.phone_numbers[0], self.ips[1], "111111")
-        self.call_validate_endpoint(self.phone_numbers[0], self.ips[2], "111111")
-        self.call_validate_endpoint(self.phone_numbers[0], self.ips[3], "111111")
+        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0])
+        self.call_validate_endpoint(self.phone_numbers[0], self.ips[1])
+        self.call_validate_endpoint(self.phone_numbers[0], self.ips[2])
+        self.call_validate_endpoint(self.phone_numbers[0], self.ips[3])
 
         redis_value: bytes = redis_client.blocked_redis.get(key_generators.get_blocked_key_for_phone_number(
             self.phone_numbers[0]))
@@ -112,10 +112,10 @@ class AttemptMiddlewareTestCase(CustomAPITestCase):
     def test_if_validate_phone_number_blocked_key_has_ttl(self):
         self.reset_redis()
 
-        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0], "111111")
-        self.call_validate_endpoint(self.phone_numbers[0], self.ips[1], "111111")
-        self.call_validate_endpoint(self.phone_numbers[0], self.ips[2], "111111")
-        self.call_validate_endpoint(self.phone_numbers[0], self.ips[3], "111111")
+        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0])
+        self.call_validate_endpoint(self.phone_numbers[0], self.ips[1])
+        self.call_validate_endpoint(self.phone_numbers[0], self.ips[2])
+        self.call_validate_endpoint(self.phone_numbers[0], self.ips[3])
 
         ttl: int = redis_client.blocked_redis.ttl(key_generators.get_blocked_key_for_phone_number(
             self.phone_numbers[0]))
@@ -126,12 +126,12 @@ class AttemptMiddlewareTestCase(CustomAPITestCase):
     def test_if_validate_phone_number_get_blocked_after_three_times(self):
         self.reset_redis()
 
-        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0], "111111")
-        self.call_validate_endpoint(self.phone_numbers[0], self.ips[1], "111111")
-        self.call_validate_endpoint(self.phone_numbers[0], self.ips[2], "111111")
-        self.call_validate_endpoint(self.phone_numbers[0], self.ips[3], "111111")
+        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0])
+        self.call_validate_endpoint(self.phone_numbers[0], self.ips[1])
+        self.call_validate_endpoint(self.phone_numbers[0], self.ips[2])
+        self.call_validate_endpoint(self.phone_numbers[0], self.ips[3])
 
-        response = self.call_validate_endpoint(self.phone_numbers[0], self.ips[3], "111111")
+        response = self.call_validate_endpoint(self.phone_numbers[0], self.ips[3])
 
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
         self.assertEqual(response.data, error_messages.PHONE_NUMBER_HAS_BEEN_BLOCKED_ERROR_MESSAGE)
@@ -139,10 +139,10 @@ class AttemptMiddlewareTestCase(CustomAPITestCase):
     def test_if_validate_ip_blocked_key_is_added_to_redis(self):
         self.reset_redis()
 
-        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0], "111111")
-        self.call_validate_endpoint(self.phone_numbers[1], self.ips[0], "111111")
-        self.call_validate_endpoint(self.phone_numbers[2], self.ips[0], "111111")
-        self.call_validate_endpoint(self.phone_numbers[3], self.ips[0], "111111")
+        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0])
+        self.call_validate_endpoint(self.phone_numbers[1], self.ips[0])
+        self.call_validate_endpoint(self.phone_numbers[2], self.ips[0])
+        self.call_validate_endpoint(self.phone_numbers[3], self.ips[0])
 
         redis_value: bytes = redis_client.blocked_redis.get(key_generators.get_blocked_key_for_ip(
             self.ips[0]))
@@ -155,10 +155,10 @@ class AttemptMiddlewareTestCase(CustomAPITestCase):
     def test_if_validate_ip_blocked_key_has_ttl(self):
         self.reset_redis()
 
-        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0], "111111")
-        self.call_validate_endpoint(self.phone_numbers[1], self.ips[0], "111111")
-        self.call_validate_endpoint(self.phone_numbers[2], self.ips[0], "111111")
-        self.call_validate_endpoint(self.phone_numbers[3], self.ips[0], "111111")
+        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0])
+        self.call_validate_endpoint(self.phone_numbers[1], self.ips[0])
+        self.call_validate_endpoint(self.phone_numbers[2], self.ips[0])
+        self.call_validate_endpoint(self.phone_numbers[3], self.ips[0])
 
         ttl: int = redis_client.blocked_redis.ttl(key_generators.get_blocked_key_for_ip(
             self.ips[0]))
@@ -169,12 +169,12 @@ class AttemptMiddlewareTestCase(CustomAPITestCase):
     def test_if_validate_ip_get_blocked_after_three_times(self):
         self.reset_redis()
 
-        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0], "111111")
-        self.call_validate_endpoint(self.phone_numbers[1], self.ips[0], "111111")
-        self.call_validate_endpoint(self.phone_numbers[2], self.ips[0], "111111")
-        self.call_validate_endpoint(self.phone_numbers[3], self.ips[0], "111111")
+        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0])
+        self.call_validate_endpoint(self.phone_numbers[1], self.ips[0])
+        self.call_validate_endpoint(self.phone_numbers[2], self.ips[0])
+        self.call_validate_endpoint(self.phone_numbers[3], self.ips[0])
 
-        response = self.call_validate_endpoint(self.phone_numbers[3], self.ips[0], "111111")
+        response = self.call_validate_endpoint(self.phone_numbers[3], self.ips[0])
 
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
         self.assertEqual(response.data, error_messages.IP_HAS_BEEN_BLOCKED_ERROR_MESSAGE)
@@ -185,13 +185,11 @@ class AttemptMiddlewareTestCase(CustomAPITestCase):
         self.call_endpoint_with_post(self.authenticate_url,
                                      data={"phone_number": self.phone_numbers[0]},
                                      headers={"X_FORWARDED_FOR": self.ips[0]})
-        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0], "111111")
+        self.call_validate_endpoint(self.phone_numbers[0], self.ips[0])
         self.call_validate_endpoint(self.phone_numbers[0], self.ips[0], self.phone_numbers[0][-6:])
 
-        redis_value: bytes = redis_client.attempts_redis.get(key_generators.get_phone_number_attempts_key_for_validate(
-            self.phone_numbers[0]))
+        redis_value: bytes = redis_client.attempts_redis.get(self.phone_number_attempts_keys[0])
         self.assertIsNone(redis_value)
 
-        redis_value: bytes = redis_client.attempts_redis.get(key_generators.get_ip_attempts_key_for_validate(
-            self.ips[0]))
+        redis_value: bytes = redis_client.attempts_redis.get(self.ip_attempts_keys[0])
         self.assertIsNone(redis_value)

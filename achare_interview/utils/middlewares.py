@@ -99,14 +99,23 @@ class AttemptMiddleware:
 
     def do_post_request_stuff(self, response: Response, request_path: str, ip: str, phone_number: str):
         if request_path in self.response_sensitive_path_list:
+            response_status_code: int = response.status_code
+            phone_number_attempts_key: str = ""
+            phone_number_block_key: str = key_generators.get_blocked_key_for_phone_number(phone_number)
+            ip_attempts_key: str = ""
+            ip_block_key: str = key_generators.get_blocked_key_for_ip(ip)
+
             if request_path == reverse("validate"):
-                if response.status_code == HTTPStatus.BAD_REQUEST:
-                    self.check_attempts(key_generators.get_phone_number_attempts_key_for_validate(phone_number),
-                                        key_generators.get_blocked_key_for_phone_number(phone_number))
+                phone_number_attempts_key = key_generators.get_phone_number_attempts_key_for_validate(phone_number)
+                ip_attempts_key = key_generators.get_ip_attempts_key_for_validate(ip)
+            elif request_path == reverse("login"):
+                phone_number_attempts_key = key_generators.get_phone_number_attempts_key_for_login(phone_number)
+                ip_attempts_key = key_generators.get_ip_attempts_key_for_login(ip)
 
-                    self.check_attempts(key_generators.get_ip_attempts_key_for_validate(ip),
-                                        key_generators.get_blocked_key_for_ip(ip))
-                elif response.status_code == HTTPStatus.OK:
+            if response_status_code == HTTPStatus.BAD_REQUEST:
+                self.check_attempts(phone_number_attempts_key, phone_number_block_key)
+                self.check_attempts(ip_attempts_key, ip_block_key)
 
-                    self.remove_attempts(key_generators.get_phone_number_attempts_key_for_validate(phone_number))
-                    self.remove_attempts(key_generators.get_ip_attempts_key_for_validate(ip))
+            elif response_status_code == HTTPStatus.OK:
+                self.remove_attempts(phone_number_attempts_key)
+                self.remove_attempts(ip_attempts_key)

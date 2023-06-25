@@ -23,7 +23,7 @@ REQUESTED_MORE_THAN_3_TIMES_ERROR_MESSAGE = get_error_dict(
     _("You requested more than 3 times, your IP has been blocked for 1 hour.")
 )
 REQUEST_FAILED_MORE_THAN_3_TIMES_ERROR_MESSAGE = get_error_dict(
-    _("You request failed more than 3 times, your IP has been blocked for 1 hour.")
+    _("Your request failed more than 3 times, your IP has been blocked for 1 hour.")
 )
 PHONE_NUMBER_HAS_BEEN_BLOCKED_ERROR_MESSAGE = get_error_dict(
     _("Phone number has been blocked, for an hour.")
