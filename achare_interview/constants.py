@@ -7,3 +7,4 @@ class EnvVarKeys:
     GeneratedCodeTimeToLive = "GENERATED_CODE_TIME_TO_LIVE"
     MaximumCodeRequestCount = "MAXIMUM_CODE_REQUEST_COUNT"
     RegistrationTokenTimeToLive = "REGISTRATION_TOKEN_TIME_TO_LIVE"
+    RedisAttemptsDB = "REDIS_ATTEMPTS_DB"

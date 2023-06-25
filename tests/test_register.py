@@ -5,8 +5,7 @@ from django.urls import reverse
 from rest_framework.test import APITestCase
 
 from achare_interview.utils import error_messages
-from achare_interview.utils.redis_client import validation_code_redis, reset_redis, registration_token_redis, \
-    RedisKeyGenerator
+from achare_interview.utils.redis_utils import redis_client, key_generators
 from customer.models import Customer
 
 
@@ -24,8 +23,8 @@ class RegisterTestCase(APITestCase):
         self.sample_token = uuid4().hex
 
     def delete_redis(self):
-        reset_redis(validation_code_redis)
-        reset_redis(registration_token_redis)
+        redis_client.reset_redis(redis_client.validation_code_redis)
+        redis_client.reset_redis(redis_client.registration_token_redis)
 
     def test_if_register_endpoint_exists(self):
         self.delete_redis()
@@ -166,8 +165,8 @@ class RegisterTestCase(APITestCase):
         self.assertIn("token", response.data)
 
         self.assertEqual(response.status_code, HTTPStatus.OK)
-        self.assertIsNone(registration_token_redis.get(
-            RedisKeyGenerator.get_registration_token_key(registration_token)
+        self.assertIsNone(redis_client.registration_token_redis.get(
+            key_generators.get_registration_token_key(registration_token)
         ))
 
         customer_created = Customer.objects.filter(phone_number=self.phone_number).exists()

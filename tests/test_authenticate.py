@@ -4,7 +4,7 @@ from django.conf import settings
 from django.urls import reverse
 from rest_framework.test import APITestCase
 
-from achare_interview.utils.redis_client import validation_code_redis, reset_redis, RedisKeyGenerator
+from achare_interview.utils.redis_utils import redis_client, key_generators
 from customer.models import Customer
 
 
@@ -40,23 +40,23 @@ class AuthenticateTestCase(APITestCase):
         self.assertEqual(response.data["duration"], settings.GENERATED_CODE_TIME_TO_LIVE)
 
     def test_if_authenticate_create_validation_code_for_user(self):
-        reset_redis(validation_code_redis)
+        redis_client.reset_redis(redis_client.validation_code_redis)
 
         phone_number: str = "09123456789"
-        redis_key: str = RedisKeyGenerator.get_code_key(phone_number)
+        redis_key: str = key_generators.get_code_key(phone_number)
 
         response = self.client.post(self.url, data={"phone_number": phone_number})
 
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
-        redis_value: bytes = validation_code_redis.get(redis_key)
+        redis_value: bytes = redis_client.validation_code_redis.get(redis_key)
         self.assertIsNotNone(redis_value)
 
         redis_value_str: str = redis_value.decode(encoding='utf-8')
         self.assertEqual(redis_value_str, phone_number[-6:])
 
     def test_if_authenticate_responses_contains_can_login_field_if_phone_number_exists(self):
-        reset_redis(validation_code_redis)
+        redis_client.reset_redis(redis_client.validation_code_redis)
 
         phone_number: str = "09123456789"
 

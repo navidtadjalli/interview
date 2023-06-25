@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.core.handlers.wsgi import WSGIRequest
 
 
@@ -38,6 +37,9 @@ from django.core.handlers.wsgi import WSGIRequest
 # def check_ip_attempts(ip_attempts: int):
 #     if ip_attempts >= settings.MAXIMUM_CODE_REQUEST_COUNT:
 #         raise exceptions.MaximumIPAttemptException()
+from django.urls import reverse
+
+from achare_interview.utils.redis_utils.redis_client import attempts_redis
 
 
 class AttemptMiddleware:
@@ -46,6 +48,9 @@ class AttemptMiddleware:
         # One-time configuration and initialization.
 
     def __call__(self, request: WSGIRequest):
+        # if request.path == reverse("authenticate"):
+        #     attempts_redis.set()
+
         # Code to be executed for each request before
         # the view (and later middleware) are called.
         # print(request.path in settings.SENSITIVE_ENDPOINTS)

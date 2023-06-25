@@ -1,12 +1,10 @@
 from http import HTTPStatus
-from uuid import uuid4
 
 from django.urls import reverse
 from rest_framework.test import APITestCase
 
 from achare_interview.utils import error_messages
-from achare_interview.utils.redis_client import validation_code_redis, reset_redis, registration_token_redis, \
-    RedisKeyGenerator
+from achare_interview.utils.redis_utils.redis_client import validation_code_redis, reset_redis, registration_token_redis
 from customer.models import Customer
 
 

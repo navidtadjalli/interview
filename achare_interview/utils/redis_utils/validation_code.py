@@ -3,7 +3,7 @@ import random
 from django.conf import settings
 
 from achare_interview.utils import exceptions
-from achare_interview.utils.redis_client import validation_code_redis, RedisKeyGenerator
+from achare_interview.utils.redis_utils import redis_client, key_generators
 
 
 def generate_validation_code(phone_number: str) -> str:
@@ -14,13 +14,13 @@ def generate_validation_code(phone_number: str) -> str:
 
 
 def add_code_to_redis(phone_number: str, code: str):
-    validation_code_redis.set(RedisKeyGenerator.get_code_key(phone_number),
-                              code,
-                              ex=settings.GENERATED_CODE_TIME_TO_LIVE)
+    redis_client.validation_code_redis.set(key_generators.get_code_key(phone_number),
+                                           code,
+                                           ex=settings.GENERATED_CODE_TIME_TO_LIVE)
 
 
 def get_code_from_redis(phone_number: str) -> str:
-    redis_value: bytes = validation_code_redis.get(RedisKeyGenerator.get_code_key(phone_number))
+    redis_value: bytes = redis_client.validation_code_redis.get(key_generators.get_code_key(phone_number))
     if not redis_value:
         raise exceptions.ValidationCodeExpiredException()
 
@@ -28,7 +28,7 @@ def get_code_from_redis(phone_number: str) -> str:
 
 
 def delete_code_from_redis(phone_number: str):
-    validation_code_redis.delete(RedisKeyGenerator.get_code_key(phone_number))
+    redis_client.validation_code_redis.delete(key_generators.get_code_key(phone_number))
 
 
 def create_validation_code(phone_number: str):

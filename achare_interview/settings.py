@@ -135,6 +135,7 @@ REDIS_HOST = os.environ.get(EnvVarKeys.RedisHost, "localhost")
 REDIS_PORT = os.environ.get(EnvVarKeys.RedisPort, "6379")
 REDIS_VALIDATION_CODE_DB = os.environ.get(EnvVarKeys.RedisValidationCode, "1")
 REDIS_REGISTRATION_TOKEN_DB = os.environ.get(EnvVarKeys.RedisRegistrationToken, "2")
+REDIS_ATTEMPTS_DB = os.environ.get(EnvVarKeys.RedisAttemptsDB, "3")
 
 GENERATE_FAKE_CODE = True \
     if str(os.environ.get(EnvVarKeys.GenerateFakeCode, "0")).lower() in ('1', 'yes', 'y', 'true') \

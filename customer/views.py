@@ -5,8 +5,8 @@ from rest_framework import generics
 from rest_framework.response import Response
 
 from achare_interview.utils import exceptions, error_messages
-from achare_interview.utils.registration_token import get_registration_token, validate_registration_token
-from achare_interview.utils.validation_code import create_validation_code, validate_validation_code
+from achare_interview.utils.redis_utils.registration_token import get_registration_token, validate_registration_token
+from achare_interview.utils.redis_utils.validation_code import create_validation_code, validate_validation_code
 from customer import serializers
 from customer.models import Customer
 

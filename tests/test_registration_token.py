@@ -1,10 +1,7 @@
-from time import sleep
-
-from django.conf import settings
 from django.test import TestCase
 
-from achare_interview.utils.redis_client import registration_token_redis, reset_redis, RedisKeyGenerator
-from achare_interview.utils.registration_token import get_registration_token
+from achare_interview.utils.redis_utils import redis_client, key_generators
+from achare_interview.utils.redis_utils.registration_token import get_registration_token
 
 
 class ValidationCodeTestCase(TestCase):
@@ -13,7 +10,7 @@ class ValidationCodeTestCase(TestCase):
         self.phone_number_2 = "09123056780"
 
     def delete_redis_keys(self):
-        reset_redis(registration_token_redis)
+        redis_client.reset_redis(redis_client.registration_token_redis)
 
     def test_if_get_registration_token_has_phone_number_arg(self):
         with self.assertRaises(TypeError):
@@ -36,7 +33,7 @@ class ValidationCodeTestCase(TestCase):
         self.delete_redis_keys()
 
         token: str = get_registration_token(self.phone_number)
-        redis_value: bytes = registration_token_redis.get(RedisKeyGenerator.get_registration_token_key(token))
+        redis_value: bytes = redis_client.registration_token_redis.get(key_generators.get_registration_token_key(token))
 
         self.assertIsNotNone(redis_value)
 
@@ -44,7 +41,7 @@ class ValidationCodeTestCase(TestCase):
         self.delete_redis_keys()
 
         token: str = get_registration_token(self.phone_number)
-        ttl: int = registration_token_redis.ttl(RedisKeyGenerator.get_registration_token_key(token))
+        ttl: int = redis_client.registration_token_redis.ttl(key_generators.get_registration_token_key(token))
 
         self.assertNotEqual(ttl, -1)
 
@@ -52,7 +49,7 @@ class ValidationCodeTestCase(TestCase):
         self.delete_redis_keys()
 
         token: str = get_registration_token(self.phone_number)
-        value: bytes = registration_token_redis.get(RedisKeyGenerator.get_registration_token_key(token))
+        value: bytes = redis_client.registration_token_redis.get(key_generators.get_registration_token_key(token))
 
         self.assertIsNotNone(value)
 
