@@ -136,10 +136,12 @@ REDIS_PORT = os.environ.get(EnvVarKeys.RedisPort, "6379")
 REDIS_VALIDATION_CODE_DB = os.environ.get(EnvVarKeys.RedisValidationCodeDB, "1")
 REDIS_REGISTRATION_TOKEN_DB = os.environ.get(EnvVarKeys.RedisRegistrationTokenDB, "2")
 REDIS_ATTEMPTS_DB = os.environ.get(EnvVarKeys.RedisAttemptsDB, "3")
+REDIS_BLOCKED_DB = os.environ.get(EnvVarKeys.BlockedDB, "4")
 
 GENERATED_CODE_TIME_TO_LIVE = int(os.environ.get(EnvVarKeys.GeneratedCodeTimeToLive, 120))
 REGISTRATION_TOKEN_TIME_TO_LIVE = int(os.environ.get(EnvVarKeys.RegistrationTokenTimeToLive, 600))
 ATTEMPTS_TIME_TO_LIVE = int(os.environ.get(EnvVarKeys.AttemptsTimeToLive, 3600))
+BLOCKED_KEY_TIME_TO_LIVE = int(os.environ.get(EnvVarKeys.BlockedKeyTimeToLive, 3600))
 
 MAXIMUM_CODE_REQUEST_COUNT = int(os.environ.get(EnvVarKeys.MaximumCodeRequestCount, 3))
 

@@ -1,11 +1,3 @@
-class MaximumPhoneNumberAttemptException(Exception):
-    pass
-
-
-class MaximumIPAttemptException(Exception):
-    pass
-
-
 class ValidationCodeExpiredException(Exception):
     pass
 
@@ -15,4 +7,16 @@ class ValidationCodeDoesNotMatchException(Exception):
 
 
 class RegistrationTokenIsNotValidException(Exception):
+    pass
+
+
+class MaximumAttemptException(Exception):
+    pass
+
+
+class PhoneNumberHasBeenBlockedException(Exception):
+    pass
+
+
+class IPHasBeenBlockedException(Exception):
     pass

@@ -15,6 +15,7 @@ class CustomAPITestCase(APITestCase):
         redis_client.reset_redis(redis_client.validation_code_redis)
         redis_client.reset_redis(redis_client.registration_token_redis)
         redis_client.reset_redis(redis_client.attempts_redis)
+        redis_client.reset_redis(redis_client.blocked_redis)
 
     def call_endpoint(self, url: str, method: str, data: Optional[dict] = None, headers: Optional[dict] = None):
         callable_method: Callable = self.client.get
